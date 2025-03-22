@@ -15,15 +15,15 @@ const menuItems = [
 
 
 
-export default function Dashboard() {
+export default function Dashboard({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   const [active, setActive] = useState("Dashboard");
   const [isConnected, setIsConnected] = useState(socket.connected);
   const [fooEvents, setFooEvents] = useState([]);
-  const games = [{
-    title: "Spin",
-    desc: "spin to win",
-    path: 'spin'
-  }]
+ 
 
   useEffect(() => {
     console.log(socket)
@@ -77,21 +77,9 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
-        <h2 className="text-3xl font-bold mb-4">{active}</h2>
+        <h2 className="text-3xl font-bold mb-4">Dashboard</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Example Cards */}
-          {games.map((_, i) => (
-            <Link key={i} href={_.path}>
-              <motion.div
-
-                className="p-6 bg-gray-800 rounded-lg shadow-lg"
-                whileHover={{ boxShadow: "0px 0px 12px #00f2ff" }}
-              >
-                <h3 className="text-xl font-semibold mb-2">{_.title}</h3>
-                <p className="text-gray-400">{_.desc}</p>
-              </motion.div>
-            </Link>
-          ))}
+          {children}
         </div>
       </main>
     </div>

@@ -7,6 +7,7 @@ import headsImage from "@/public/coin-heads.png";
 import bgImage from "@/public/spinbg.webp";
 import tailsImage from "@/public/coin-tails.png";
 import { socket } from "@/components/socket";
+import TypewriterEffect from "@/components/typewriter";
 
 function getRandomColor() {
     const colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"];
@@ -79,29 +80,35 @@ export default function CoinFlip() {
             // setTimeout(() => setIsCorrect(null), 5000)
         });
     }, [balance, prediction, stake])
-    // useEffect(() => {
-    //     if (result) {
-    //         socket.emit("startGame", (flipResult: string) => {
-    //             console.log("durations")
-    //         });
-    //     }
+    useEffect(() => {
 
-    // }, [])
+        if (!isFlipping && result) {
+            // setTimeout(() => window.location.reload(), 5000)
+            // window.location.reload()
+            // socket.emit("startGame", (flipResult: string) => {
+            //     console.log("durations")
+            // });
+        }
+
+    }, [result, isFlipping])
     return (
 
 
         <div className="flex relative z-0 flex-col items-center justify-center h-screen bg-gray-900  text-white">
 
             <Image src={bgImage} alt="result" className="w-full h-full object-cover" width={1200} height={1200} />
-
+            <div className="absolute right-[10%] top-2 h-10  flex justify-center items-center z-12">
+                <p style={{ textShadow: `0px 0px 19px  ${isCorrect === null ? "white" : isCorrect === true ? "green" : "red"}` }} className={`text-lg  font-semibold mb-4  ${isCorrect === null && !isFlipping ? "text-white" : isCorrect === true && !isFlipping && result ? "text-green-200" : "text-red-500"}`}>Balance: Ksh {balance}</p>
+            </div>
             <div className="absolute inset-0 flex justify-center items-center z-12">
 
-                <div style={{ boxShadow: !isFlipping && !isCorrect ? "0px 0px 40px red" : "0px 0px 10px #00f2ff" }} className={`flex bg-gray-900   ${!isFlipping && !isCorrect ? "border border-[red]" : "border-[#00f2ff]"} items-center justify-center flex-col p-5 rounded-md`}>
+                <div style={{ boxShadow: result && !isFlipping && !isCorrect && prediction !== null ? "0px 0px 800px red" : "0px 0px 10px #00f2ff" }} className={`flex bg-gray-900   ${result && !isFlipping && !isCorrect && prediction !== null ? "border border-[red]" : "border-[#00f2ff]"} items-center justify-center flex-col p-5 rounded-md`}>
                     {/* <h1 className="text-3xl font-bold mb-6 text-cyan-400">Coin Flip</h1> */}
-                    <p style={{ textShadow: "0px 0px 8px  #fff" }} className="text-lg text-[#FFD700] font-semibold mb-4">Balance: Ksh {balance}</p>
+
                     {timer !== null && (
                         <p className="text-lg font-bold text-yellow-400">Game starts in: {timer} seconds</p>
                     )}
+
                     <div className="flex flex-col items-center">
                         <motion.div
                             className="w-32 h-32 rounded-full flex items-center justify-center shadow-lg overflow-hidden"
@@ -164,11 +171,16 @@ export default function CoinFlip() {
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ duration: 0.5 }}
                                 >
-                                    {isCorrect ? (
-                                        <span className="text-green-400">🎉 Correct! You won Ksh {stake}!</span>
-                                    ) : (
-                                        <span className="text-red-400">❌ Wrong! You lost Ksh {stake}.</span>
-                                    )}
+                                    {prediction ? <>
+                                        {isCorrect ? (
+                                            <span className="text-green-400">🎉 Correct! You won Ksh {stake}!</span>
+                                        ) : (
+                                            <span className="text-red-400">❌ Wrong! You lost Ksh {stake}.</span>
+                                        )}
+                                    </> :
+                                        <span className="text-green-400">Prediction in the next round .</span>
+                                    }
+
                                 </motion.div>
                             )
                         }
