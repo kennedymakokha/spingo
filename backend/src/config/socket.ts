@@ -10,13 +10,12 @@ export const setupSocket = (socketInstance: any) => {
         console.log("User connected :", socket.id);
         socket.on("flipCoin", ({ prediction }: any) => {
             let flipResult
-
             let outcome = predictors.reduce((acc: any, item: any) => {
                 acc[item.bet] = (acc[item.bet] || 0) + 1;
                 return acc;
             }, { heads: 0, tails: 0 });
             const result = outcome.heads > outcome.tails ? "heads" : outcome.tails > outcome.heads ? "tails" : "equal";
-            console.log(result)
+
             if (result === "equal" || predictors.length === 1) {
                 flipResult = Math.random() > 0.5 ? "heads" : "tails";
             } else {
@@ -27,6 +26,7 @@ export const setupSocket = (socketInstance: any) => {
             socket.emit("startGame")
         });
         socket.on("postPredict", prediction => {
+            console.log(prediction)
             let newItem = { socketId: socket.id, bet: prediction.bet, userId: prediction.uuid }
 
             if (!predictors.some((item: any) => item.socketId === socket.id)) {
@@ -37,7 +37,7 @@ export const setupSocket = (socketInstance: any) => {
         });
 
         socket.on("startGame", () => {
-            let countdown = 10;
+            let countdown = 5;
             io.emit("timerStart", countdown);
             const timerInterval = setInterval(() => {
                 countdown--;

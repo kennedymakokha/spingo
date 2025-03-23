@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const SECRET_KEY = process.env.JWT_SECRET || "default_secret";
+const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
 export interface AuthRequest extends Request {
     user?: any;
@@ -15,13 +15,16 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 
     if (!token) {
         res.status(401).json({ message: "Access denied. No token provided." });
+        return
     }
 
     try {
         const decoded = jwt.verify(token, SECRET_KEY);
         req.user = decoded;
         next();
+        return
     } catch (err) {
         res.status(403).json({ message: "Invalid token" });
+        return
     }
 };

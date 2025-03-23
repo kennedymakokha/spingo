@@ -7,6 +7,7 @@ import { setupSocket } from './config/socket'
 import { connectDB } from "./config/db";
 import authRoutes from './routes/authRoutes'
 import { authenticateToken } from "./middleware/authMiddleware";
+// import { authMiddleware } from './middleware/authMiddleware'
 const bodyParser = require("body-parser");
 
 dotenv.config();
@@ -14,13 +15,13 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 const PORT = process.env.PORT || 4000;
-// connectDB();
+connectDB();
 const httpServer = createServer(app);
 const io: any = new Server(httpServer, {
   cors: {
     origin: ["http://localhost:3000", "https://spingofrontend.vercel.app"],
     // methods: ["GET", "POST"],
-    // credentials: true, // Allow credentials like cookies
+    credentials: true, // Allow credentials like cookies
   },
 });
 
@@ -31,6 +32,7 @@ app.get("/api/protected", authenticateToken, (req: any, res) => {
 });
 app.get("/", (req, res) => {
   res.send("WebSocket Server is running!");
+  return
 });
 
 
