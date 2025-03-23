@@ -3,6 +3,7 @@ import { User } from "../models/user";
 import { hashPassword, verifyPassword, generateToken } from "../services/authService";
 import { getSocketIo } from "../config/socket";
 import { Format_phone_number } from "../utils/simplefunctions";
+import jwt from "jsonwebtoken";
 import { SendMessage } from "../utils/sms_sender";
 import bcrypt from "bcryptjs";
 import generateTokens from "../utils/generateToken";
@@ -75,5 +76,32 @@ export const login = async (req: Request, res: Response) => {
     } catch (error) {
         res.status(500).json({ message: "Server error" });
     }
- 
+
+};
+
+export const refresh = async (req: Request, res: Response) => {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+        res.status(401).json({ message: "Unauthorized" })
+        return
+    };
+    jwt.verify(refreshToken, process.env.REFRESH_SECRET ? process.env.REFRESH_SECRET : "my_secret_key", (err: any, decoded: any) => {
+        if (err) {
+            res.status(403).json({ message: "Forbidden" })
+            return
+        };
+        const newAccessToken = jwt.sign(
+            { userId: decoded.userId },
+            process.env.JWT_SECRET ? process.env.JWT_SECRET : "your_secret_key",
+            { expiresIn: "15m" }
+        );
+
+        res.json({ accessToken: newAccessToken });
+        return
+    });
+};
+export const logout = async (req: Request, res: Response) => {
+    res.clearCookie("refreshToken");
+    res.json({ message: "Logged out" });
+    return
 };

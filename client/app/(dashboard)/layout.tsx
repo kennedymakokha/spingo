@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 
 import { socket } from "@/components/socket";
+import { LogOutUser } from "@/actions/authActions";
 
 const menuItems = [
   { name: "Dashboard", icon: "m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25", path: "/" },
@@ -23,23 +24,26 @@ export default function Dashboard({
   const [active, setActive] = useState("Dashboard");
   const [isConnected, setIsConnected] = useState(socket.connected);
   const [fooEvents, setFooEvents] = useState([]);
- 
+
 
   useEffect(() => {
-    console.log(socket)
-    socket.on('connect', () => {
-      console.log('Connected to socket')
-    })
 
+
+    // socket.on('disconnect', () => {
+    //   console.log('Disconnected from socket')
+    // })
+
+  }, []);
+  const logout = async () => {
+    await LogOutUser()
     socket.on('disconnect', () => {
       console.log('Disconnected from socket')
     })
-
-  }, []);
+  }
 
   // [...Array(6)]
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen w-screen bg-gray-900 text-white">
       {/* Sidebar */}
       <aside className="w-64 bg-black bg-opacity-80 p-6 flex flex-col justify-between shadow-lg">
         <div>
@@ -64,6 +68,7 @@ export default function Dashboard({
           </nav>
         </div>
         <motion.div
+          onClick={logout}
           className="flex items-center space-x-4 p-3 rounded-lg cursor-pointer hover:bg-gray-800"
           whileHover={{ boxShadow: "0px 0px 10px #ff0055" }}
         >
@@ -76,8 +81,8 @@ export default function Dashboard({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 overflow-y-auto">
-        <h2 className="text-3xl font-bold mb-4">Dashboard</h2>
+      <main className="flex-1 p-6 min-w-[100vw] overflow-y-auto">
+        <h2 className="text-3xl font-bold capitalize  mb-4">Dashboard</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {children}
         </div>

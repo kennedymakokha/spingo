@@ -1,19 +1,21 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Input from "@/components/ui/input";
-import { loginUser, RegistetrUser } from "@/actions/authActions";
+import { loginUser, RegisterUser, } from "@/actions/authActions";
+import { socket } from "@/components/socket";
+import SuccessFailure from "@/components/successFailure";
 // import { useLoginMutation } from "@/app/features/slices/userSlice";
 
 
 
 const AuthScreen = () => {
     const [isLogin, setIsLogin] = useState(true);
-    const [item, setitem] = useState({ phone_number: "", password: "", name: "", confirm_password: "" });
-
+    const [item, setitem] = useState({ phone_number: "", password: "", username: "", confirm_password: "" });
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
     const router = useRouter();
     // const dispatch = useDispatch
@@ -22,28 +24,35 @@ const AuthScreen = () => {
         try {
             e.preventDefault();
             setError("");
-
             if (!item.phone_number || !item.password) {
                 setError("Both fields are required");
                 return;
             }
+            if (!isLogin && item.password !== item.confirm_password) {
+                setError("Passwords do not match");
+                return;
+            }
+            const result = isLogin ? await loginUser(item) : await RegisterUser(item);
+            setSuccess(isLogin ? "Login successful! Redirecting..." : "Registration successful! Please verify your account.");
+            setTimeout(() => {
+                router.push(isLogin ? "/" : "/account-verification");
+            }, 2000); // Delay redirection to show success message
+            // router.push(isLogin ? "/" : "/account-verification");
 
-            let result
-            if (isLogin) {
-                result = await loginUser(item)
-            }
-            else {
-                result = await RegistetrUser(item)
-            }
-            console.log(result)
-            // const res = await login({ email, password }).unwrap();
-            // dispatch(setCredentials({ ...res }))
-            // Simulate login/signup success and redirect
-            // router.push(`${isLogin ? "/" : "/account-verification"}`);
         } catch (error) {
             console.log(error)
+            setError("An error occurred. Please try again.");
         }
     };
+    useEffect(() => {
+        socket.on("connect", () => {
+            console.log("Connected to socket");
+        });
+
+        return () => {
+            socket.off("connect");
+        };
+    }, []);
 
     return (
         <AnimatePresence mode="wait">
@@ -58,7 +67,8 @@ const AuthScreen = () => {
                 <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
                     {isLogin ? "Login" : "Register"}
                 </h2>
-                {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
+                <SuccessFailure success={success} error={error} />
+              
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
                         type="numeric"
@@ -70,9 +80,9 @@ const AuthScreen = () => {
                     />
                     {!isLogin && <Input
                         placeholder="Name"
-                        value={item.name}
+                        value={item.username}
                         onChange={(e) => setitem(prev => ({
-                            ...prev, name: e.target.value
+                            ...prev, username: e.target.value
                         }))}
                     />}
                     <Input

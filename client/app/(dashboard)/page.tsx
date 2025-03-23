@@ -13,6 +13,11 @@ const page = () => {
     title: "Spin",
     desc: "spin to win",
     path: 'spin'
+  },
+  {
+    title: "Spin",
+    desc: "spin to win",
+    path: 'spin'
   }]
   return (
     <>

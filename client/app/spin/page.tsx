@@ -77,13 +77,12 @@ export default function CoinFlip() {
             setBalance(correct ? balance + stake : balance - stake);
             setTimeout(() => setIsFlipping(false), 5000)
 
-            // setTimeout(() => setIsCorrect(null), 5000)
         });
     }, [balance, prediction, stake])
     useEffect(() => {
 
         if (!isFlipping && result) {
-            // setTimeout(() => window.location.reload(), 5000)
+            setTimeout(() => window.location.reload(), 5000)
             // window.location.reload()
             // socket.emit("startGame", (flipResult: string) => {
             //     console.log("durations")
