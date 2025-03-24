@@ -16,7 +16,7 @@ import { setCookie } from "cookies-next";
 
 const AuthScreen = () => {
     const [isLogin, setIsLogin] = useState(true);
-    const [item, setitem] = useState({ phone_number: "0720141537", password: "makokha123", username: "", confirm_password: "" });
+    const [item, setitem] = useState({ phone_number: "", password: "", username: "", confirm_password: "" });
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
