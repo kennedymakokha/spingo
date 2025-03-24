@@ -3,30 +3,46 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
+import { Request, Response } from "express";
 import { setupSocket } from './config/socket'
 import { connectDB } from "./config/db";
+import walletRoutes from './routes/walletRoutes'
 import authRoutes from './routes/authRoutes'
+import predictRoutes from './routes/predictRoutes'
 import { authenticateToken } from "./middleware/authMiddleware";
 // import { authMiddleware } from './middleware/authMiddleware'
-const bodyParser = require("body-parser");
-
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import { User } from "./models/user";
+import cors from 'cors'
 dotenv.config();
 const app = express();
+
+app.use(cors({ credentials: true, origin: ["http://localhost:3000", "https://spingofrontend.vercel.app"] }))
+app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 const PORT = process.env.PORT || 4000;
 connectDB();
+
 const httpServer = createServer(app);
 const io: any = new Server(httpServer, {
   cors: {
     origin: ["http://localhost:3000", "https://spingofrontend.vercel.app"],
-    // methods: ["GET", "POST"],
+    methods: ["GET", "POST"],
     credentials: true, // Allow credentials like cookies
+    allowedHeaders: "Content-Type,Authorization", // Allow headers
   },
 });
 
 
 app.use("/api/auth", authRoutes);
+app.use("/api/wallet", authenticateToken, walletRoutes);
+app.use("/api/predictions", authenticateToken, predictRoutes);
+app.get("/api/authenticated", authenticateToken, async (req: any, res) => {
+  let authuser = await User.findById(req.user.userId)
+  res.json(authuser);
+});
 app.get("/api/protected", authenticateToken, (req: any, res) => {
   res.json({ message: "This is a protected route", user: req.user });
 });

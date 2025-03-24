@@ -9,7 +9,8 @@ const ContributionSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-
+        enum: ["deposit", "withdraw", "stake-lost", "stake-won",],
+        default: "deposit"
     },
     amount: {
         type: Number,

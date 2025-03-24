@@ -7,24 +7,36 @@ import Link from "next/link";
 
 import { socket } from "@/components/socket";
 import { LogOutUser } from "@/actions/authActions";
+import { useRouter } from "next/navigation";
+import apiClient from "@/lib/apiClient";
+import { UserData } from "@/types/transactions";
 
 const menuItems = [
   { name: "Dashboard", icon: "m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25", path: "/" },
   { name: "Analytics", icon: "M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941", path: "/analytics" },
   { name: "Wallet", icon: "M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3", path: "/wallet" },
 ];
-
-
-
 export default function Dashboard({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const [active, setActive] = useState("Dashboard");
-  const [isConnected, setIsConnected] = useState(socket.connected);
-  const [fooEvents, setFooEvents] = useState([]);
+  const router = useRouter()
+  const [user, setUser] = useState<UserData>();
+  const fetchData = async () => {
+    try {
+      const response = await apiClient().get(`authenticated`);
 
+      setUser(response.data)
+    } catch (err) {
+      router.push('/login')
+      console.log(err)
+    }
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   useEffect(() => {
 
@@ -43,7 +55,7 @@ export default function Dashboard({
 
   // [...Array(6)]
   return (
-    <div className="flex h-screen w-screen bg-gray-900 text-white">
+    <div className="flex h-screen  bg-gray-900 text-white">
       {/* Sidebar */}
       <aside className="w-64 bg-black bg-opacity-80 p-6 flex flex-col justify-between shadow-lg">
         <div>
@@ -57,16 +69,15 @@ export default function Dashboard({
                 whileHover={{ boxShadow: "0px 0px 10px #00f2ff" }}
                 onClick={() => setActive(item.name)}
               >
-
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                 </svg>
-
                 <Link href={item.path}>{item.name}</Link>
               </motion.div>
             ))}
           </nav>
         </div>
+
         <motion.div
           onClick={logout}
           className="flex items-center space-x-4 p-3 rounded-lg cursor-pointer hover:bg-gray-800"
@@ -82,7 +93,8 @@ export default function Dashboard({
 
       {/* Main Content */}
       <main className="flex-1 p-6 min-w-[100vw] overflow-y-auto">
-        <h2 className="text-3xl font-bold capitalize  mb-4">Dashboard</h2>
+        <div className="flex items-center w-full"><h2 className="text-3xl font-bold text-end capitalize   mb-4">  {user?.username}</h2></div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {children}
         </div>

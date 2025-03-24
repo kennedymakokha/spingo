@@ -8,6 +8,8 @@ import bgImage from "@/public/spinbg.webp";
 import tailsImage from "@/public/coin-tails.png";
 import { socket } from "@/components/socket";
 import TypewriterEffect from "@/components/typewriter";
+import apiClient from "@/lib/apiClient";
+import { BetData, WalletData } from "@/types/transactions";
 
 function getRandomColor() {
     const colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"];
@@ -15,28 +17,31 @@ function getRandomColor() {
 }
 export default function CoinFlip() {
     const [isFlipping, setIsFlipping] = useState(false);
+
     const [result, setResult] = useState<string | null>(null);
     const [prediction, setPrediction] = useState<string | null>(null);
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
     const [stake, setStake] = useState<number>(10);
-    const [balance, setBalance] = useState<number>(100);
+    const [balance, setBalance] = useState<number>(0);
     const [timer, setTimer] = useState<number | null>(10);
-    const [gameActive, setGameActive] = useState(false);
-    const [canPlay, setCanPlay] = useState(false);
-    // const handleFlip = () => {
-    //     if (!prediction || stake <= 0 || stake > balance) return;
-    //     setIsFlipping(true);
-    //     setIsCorrect(null);
-    //     setTimeout(() => {
-    //         const flipResult = Math.random() > 0.5 ? "heads" : "tails";
-    //         setResult(flipResult);
-    //         const correct = flipResult === prediction;
-    //         setIsCorrect(correct);
-    //         setBalance(correct ? balance + stake : balance - stake);
-    //         setIsFlipping(false);
-    //     }, 2000);
-    // };
 
+    const [canPlay, setCanPlay] = useState(false);
+    const [data, setData] = useState<any>(null);
+
+
+
+    const post_bet = async (result: any) => {
+        try {
+            await apiClient().post<BetData[]>(`predictions`, {
+                stake: stake,
+                outcome: result,
+                prediction: prediction
+            });
+        } catch (err) {
+            console.log(err)
+            // setError("Error loading data");
+        }
+    };
     const handleFlip = async () => {
         if (!prediction || stake <= 0 || stake > balance || !canPlay) return;
         setIsFlipping(true);
@@ -45,9 +50,24 @@ export default function CoinFlip() {
 
         // setIsFlipping(false)
     };
+    const fetchData = async () => {
+        try {
+
+            const response = await apiClient().get<WalletData>(`wallet`);
+            setData(response.data);
+            setBalance(response?.data?.total_amount)
+
+
+        } catch (err) {
+            console.log(err)
+        }
+    };
+    useEffect(() => {
+        fetchData();
+    }, [balance]);
     useEffect(() => {
         socket.emit("startGame", (flipResult: string) => {
-            console.log("durations")
+            // console.log("durations")
         });
         socket.on("timerUpdate", (dur) => {
             setTimer(dur)
@@ -78,18 +98,19 @@ export default function CoinFlip() {
             setTimeout(() => setIsFlipping(false), 5000)
 
         });
-    }, [balance, prediction, stake])
+    }, [balance, prediction])
     useEffect(() => {
 
+        if (result && prediction) {
+            post_bet(result)
+            fetchData()
+        }
         if (!isFlipping && result) {
             setTimeout(() => window.location.reload(), 5000)
-            // window.location.reload()
-            // socket.emit("startGame", (flipResult: string) => {
-            //     console.log("durations")
-            // });
         }
 
     }, [result, isFlipping])
+    // console.log(data.)
     return (
 
 
@@ -154,7 +175,7 @@ export default function CoinFlip() {
 
 
 
-                        {isFlipping && <button
+                        {stake && <button
                             className="mt-6 px-6 py-3 bg-cyan-500 text-black font-bold rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition duration-300"
                             onClick={handleFlip}
                             disabled={isFlipping || !prediction || stake > balance}

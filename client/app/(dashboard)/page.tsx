@@ -5,10 +5,20 @@ import { motion } from "framer-motion";
 
 import Link from "next/link";
 
+// const Dashboard = () => {
+//   const { user, logout } = useAuth();
 
+//   if (!user) return <p>Loading...</p>;
+
+//   return (
+//     <div>
+//       <h2>Welcome, {user.phone_number}</h2>
+//       <button onClick={logout}>Logout</button>
+//     </div>
+//   );
+// };
 
 const page = () => {
-
   const games = [{
     title: "Spin",
     desc: "spin to win",
@@ -21,6 +31,7 @@ const page = () => {
   }]
   return (
     <>
+
       {games.map((_, i) => (
         <Link key={i} href={_.path}>
           <motion.div
@@ -38,4 +49,4 @@ const page = () => {
   )
 }
 
-export default page
+export default page;

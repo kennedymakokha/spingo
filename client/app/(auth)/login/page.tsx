@@ -2,18 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
 import { motion, AnimatePresence } from "framer-motion";
 import Input from "@/components/ui/input";
 import { loginUser, RegisterUser, } from "@/actions/authActions";
 import { socket } from "@/components/socket";
 import SuccessFailure from "@/components/successFailure";
+import { setCookie } from "cookies-next";
 // import { useLoginMutation } from "@/app/features/slices/userSlice";
+
 
 
 
 const AuthScreen = () => {
     const [isLogin, setIsLogin] = useState(true);
-    const [item, setitem] = useState({ phone_number: "", password: "", username: "", confirm_password: "" });
+    const [item, setitem] = useState({ phone_number: "0720141537", password: "makokha123", username: "", confirm_password: "" });
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
@@ -32,12 +35,30 @@ const AuthScreen = () => {
                 setError("Passwords do not match");
                 return;
             }
-            const result = isLogin ? await loginUser(item) : await RegisterUser(item);
+            // Call login or registration API
+            const response = isLogin ? await loginUser(item) : await RegisterUser(item);
+            // const finalresult = await response.json()
+
+            if (!response.ok) {
+                console.log(response)
+                throw new Error(response?.error || "An error occurred.");
+            }
+            localStorage.setItem("accessToken", response.token);
+            let expiry = new Date(parseInt(response?.exp?.toString() || '0') * 1000)
+            setCookie('sessionToken', response.token, { expires: expiry })
+
+            // Show success message
             setSuccess(isLogin ? "Login successful! Redirecting..." : "Registration successful! Please verify your account.");
+
             setTimeout(() => {
-                router.push(isLogin ? "/" : "/account-verification");
-            }, 2000); // Delay redirection to show success message
-            // router.push(isLogin ? "/" : "/account-verification");
+                if (isLogin) {
+
+                    router.push("/");
+                } else {
+                    router.push("/account-verification");
+                }
+            }, 2000); // Delay to show success message
+
 
         } catch (error) {
             console.log(error)
@@ -68,7 +89,7 @@ const AuthScreen = () => {
                     {isLogin ? "Login" : "Register"}
                 </h2>
                 <SuccessFailure success={success} error={error} />
-              
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
                         type="numeric"
