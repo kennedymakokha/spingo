@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { User } from "../models/user";
-import { hashPassword, verifyPassword, generateToken } from "../services/authService";
-import { getSocketIo } from "../config/socket";
+
 import { Format_phone_number } from "../utils/simplefunctions";
 import jwt from "jsonwebtoken";
 
@@ -36,7 +35,7 @@ export const register = async (req: Request, res: Response) => {
         const user = new User({ username, phone_number: phone, password });
         const newUser = await user.save();
         let textbody = { subject: "affiliate Link", id: newUser._id, address: `${phone}`, Body: `Hi \nYour referal link is http://localhost:3000?affiliate=${1245}  ` }
-        // await SendMessage(textbody)
+        await SendMessage(textbody)
         res.status(201).json({ message: "User registered successfully" });
         return;
 

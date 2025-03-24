@@ -13,7 +13,7 @@ export const fetchwallet = async () => {
     const cookieStore: any = cookies();
     // console.log("Cookies available:", cookieStore.getAll());
     // return
-    const token =  cookieStore.get("token")?.value; // Assuming you store the JWT in a cookie
+    const token = cookieStore.get("token")?.value; // Assuming you store the JWT in a cookie
 
     if (!token) {
         console.log("unauth")
@@ -42,7 +42,7 @@ export const loginUser = async (form: any) => {
             headers: { "Content-Type": "application/json" }, // Specify the content type
             body: JSON.stringify(user) // Send the data in JSON format
         };
-        const result = await fetch(`http://localhost:4000/api/auth/login`, requestOptions)
+        const result = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, requestOptions)
 
         // localStorage.setItem("accessToken", result.data.accessToken);
         const finalresult = await result.json()
@@ -71,7 +71,7 @@ export const RegisterUser = async (form: any) => {
             body: JSON.stringify(user) // Send the data in JSON format
         };
 
-        const result = await fetch(`http://localhost:4000/api/auth/register`, requestOptions)
+        const result = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/register`, requestOptions)
 
         const finalresult = await result.json()
         return parseServerActionResponse({ ...finalresult, error: "", status: "SUCCESS" })
@@ -87,7 +87,7 @@ export const LogOutUser = async () => {
             method: "POST", // Specify the request method
             headers: { "Content-Type": "application/json" }, // Specify the content type
         };
-        const result = await fetch(`http://localhost:4000/api/auth/logout`, requestOptions)
+        const result = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/logout`, requestOptions)
 
         const finalresult = await result.json()
         return parseServerActionResponse({ ...finalresult, error: "", status: "SUCCESS" })
@@ -106,7 +106,7 @@ export const authUser = async () => {
 
         };
 
-        const result = await fetch(`http://localhost:4000/api/auth`, requestOptions)
+        const result = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth`, requestOptions)
 
         const finalresult = await result.json()
         return parseServerActionResponse({ ...finalresult, error: "", status: "SUCCESS" })

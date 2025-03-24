@@ -34,8 +34,6 @@ const io: any = new Server(httpServer, {
     allowedHeaders: "Content-Type,Authorization", // Allow headers
   },
 });
-
-
 app.use("/api/auth", authRoutes);
 app.use("/api/wallet", authenticateToken, walletRoutes);
 app.use("/api/predictions", authenticateToken, predictRoutes);
