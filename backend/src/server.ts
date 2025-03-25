@@ -28,7 +28,7 @@ connectDB();
 const httpServer = createServer(app);
 const io: any = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:3000", "https://spingofrontend.vercel.app","https://marapesa.com","http://185.113.249.137"],
+    origin: ["http://localhost:3000", "https://spingofrontend.vercel.app","https://marapesa.com","http://185.113.249.137:3000"],
     methods: ["GET", "POST"],
     credentials: true, // Allow credentials like cookies
     allowedHeaders: "Content-Type,Authorization", // Allow headers
