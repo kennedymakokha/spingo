@@ -15,26 +15,26 @@ function getRandomColor() {
     const colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"];
     return colors[Math.floor(Math.random() * colors.length)];
 }
-export default function CoinFlip() {
+export default function page() {
     const [isFlipping, setIsFlipping] = useState(false);
-
-    const [result, setResult] = useState<string | null>(null);
+    const [result, setResult] = useState<string | null | any>(null);
     const [prediction, setPrediction] = useState<string | null>(null);
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
     const [stake, setStake] = useState<number>(10);
+    const [spin_id, setSpin_id] = useState<any>("");
     const [balance, setBalance] = useState<number>(0);
     const [timer, setTimer] = useState<number | null>(10);
-
+    const [restartTime, setRestartTime] = useState<number>(0);
     const [canPlay, setCanPlay] = useState(false);
     const [data, setData] = useState<any>(null);
-
-
-
+    const [user, setUser] = useState<any>(null);
     const post_bet = async (result: any) => {
+        console.log(result)
         try {
             await apiClient().post<BetData[]>(`predictions`, {
                 stake: stake,
                 outcome: result,
+                spin_id: spin_id,
                 prediction: prediction
             });
         } catch (err) {
@@ -52,12 +52,11 @@ export default function CoinFlip() {
     };
     const fetchData = async () => {
         try {
-
             const response = await apiClient().get<WalletData>(`wallet`);
+            const res = await apiClient().get(`authenticated`);
+            setUser(res?.data)
             setData(response.data);
             setBalance(response?.data?.total_amount)
-
-
         } catch (err) {
             console.log(err)
         }
@@ -90,33 +89,46 @@ export default function CoinFlip() {
     }, [timer])
     useEffect(() => {
 
-        socket.on("flipResult", (flipResult: string) => {
-            setResult(flipResult);
+        socket.on("flipResult", (flipResult: any) => {
+            setResult(flipResult.result);
+            setSpin_id(flipResult.spin_id)
             const correct = flipResult === prediction;
             setIsCorrect(correct);
             setBalance(correct ? balance + stake : balance - stake);
             setTimeout(() => setIsFlipping(false), 5000)
 
         });
+        // socket.on("spin_id",spin)
     }, [balance, prediction])
     useEffect(() => {
-
         if (result && prediction) {
             post_bet(result)
             fetchData()
         }
         if (!isFlipping && result) {
-            setTimeout(() => window.location.reload(), 5000)
+            socket.emit("restartBrowser", (flipResult: string) => {
+            });
+            socket.on("browsertimerUpdate", (dur) => {
+
+                setRestartTime(dur)
+                if (dur === 1) {
+                    window.location.reload()
+                }
+
+            })
         }
 
     }, [result, isFlipping])
-    // console.log(data.)
+
     return (
 
 
         <div className="flex relative z-0 flex-col items-center justify-center h-screen bg-gray-900  text-white">
 
             <Image src={bgImage} alt="result" className="w-full h-full object-cover" width={1200} height={1200} />
+            <div className="absolute inset-x-0 capitalize bottom-6 h-10  flex justify-center items-center z-12">
+                {TypewriterEffect({ text: `Game restarts in 10 seconds `, speed: 60, show: restartTime > 2 ? true : false })}
+            </div>
             <div className="absolute right-[10%] top-2 h-10  flex justify-center items-center z-12">
                 <p style={{ textShadow: `0px 0px 19px  ${isCorrect === null ? "white" : isCorrect === true ? "green" : "red"}` }} className={`text-lg  font-semibold mb-4  ${isCorrect === null && !isFlipping ? "text-white" : isCorrect === true && !isFlipping && result ? "text-green-200" : "text-red-500"}`}>Balance: Ksh {balance}</p>
             </div>
@@ -153,23 +165,23 @@ export default function CoinFlip() {
                         </div>
                         <div className="mt-4 flex space-x-4">
                             <button
-                                className={`px-4 py-2 rounded-lg font-bold ${prediction === "heads" ? "bg-cyan-500 text-black" : "bg-gray-700 text-white hover:bg-gray-600"
+                                className={`px-4 py-2 min-w-20 rounded-lg font-bold ${prediction === "heads" ? "bg-cyan-500 text-black" : "bg-gray-700 text-white hover:bg-gray-600"
                                     }`}
                                 onClick={() => {
                                     setPrediction("heads");
-                                    socket.emit("postPredict", { uuid: 1, bet: "heads" })
+                                    socket.emit("postPredict", { uuid: user?._id, bet: "heads" })
                                 }}
                                 disabled={canPlay}
                             >
-                                Predict Heads
+                                Head
                             </button>
                             <button
-                                className={`px-4 py-2 rounded-lg font-bold ${prediction === "tails" ? "bg-cyan-500 text-black" : "bg-gray-700 text-white hover:bg-gray-600"
+                                className={`px-4 min-w-20 py-2 rounded-lg font-bold ${prediction === "tails" ? "bg-cyan-500 text-black" : "bg-gray-700 text-white hover:bg-gray-600"
                                     }`}
-                                onClick={() => { setPrediction("tails"), socket.emit("postPredict", ({ uuid: 1, bet: "tails" })) }}
+                                onClick={() => { setPrediction("tails"), socket.emit("postPredict", ({ uuid: user?._id, bet: "tails" })) }}
                                 disabled={canPlay}
                             >
-                                Predict Tails
+                                Tail
                             </button>
                         </div>
 
@@ -180,7 +192,7 @@ export default function CoinFlip() {
                             onClick={handleFlip}
                             disabled={isFlipping || !prediction || stake > balance}
                         >
-                            {isFlipping ? "Flipping..." : "Flip the Coin"}
+                            {isFlipping ? "Flipping..." : `Stake ${stake}`}
                         </button>}
 
                         {

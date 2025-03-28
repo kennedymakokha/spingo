@@ -1,10 +1,13 @@
 import React from 'react'
 import { motion, AnimatePresence } from "framer-motion";
-const Input =  ({ value, type, placeholder, onChange }: { value: any, type?: string, placeholder: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void })=> {
+const Input = ({ value, type, placeholder, onChange }: { value: any, type?: string, placeholder: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => {
     return (
         <motion.div whileFocus={{ scale: 1.05 }}>
             <input
                 type={type}
+                autoComplete='false'
+                autoCorrect='false'
+                // maxlength={10}
                 placeholder={placeholder}
                 value={value}
                 onChange={onChange}

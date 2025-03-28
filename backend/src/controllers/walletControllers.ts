@@ -20,8 +20,8 @@ export const Load_wallet = async (req: Request | any, res: Response | any) => {
                 req?.user?._id,
             );
         }
-        let walet = await Wallet.findOne({ user_id: req.user._id })
-        let contribution = await new Contribution({ user_id: req.user._id, amount: req.body.amount, type: req.body.type }).save()
+        let walet = await Wallet.findOne({ user_id: req.user.userId })
+        let contribution = await new Contribution({ user_id: req.user.userId, amount: req.body.amount, type: req.body.type }).save()
         let new_wallet_ammount = 0
         if (walet) {
             if (type === "withdraw" || type === "stake-lost") {
@@ -29,14 +29,14 @@ export const Load_wallet = async (req: Request | any, res: Response | any) => {
             } else {
                 new_wallet_ammount = parseInt(walet.total_amount) + parseInt(req.body.amount)
             }
-            const Update = await Wallet.findOneAndUpdate({ user_id: req.user._id }, { total_amount: new_wallet_ammount }, { new: true, useFindAndModify: false })
+            const Update = await Wallet.findOneAndUpdate({ user_id: req.user.userId }, { total_amount: new_wallet_ammount }, { new: true, useFindAndModify: false })
             res
                 .status(200)
                 .json(Update);
             return
         } else {
             new_wallet_ammount = amount
-            await new Wallet({ user_id: req.user._id, total_amount: new_wallet_ammount, contibution_id: contribution._id }).save()
+            await new Wallet({ user_id: req.user.userId, total_amount: new_wallet_ammount, contibution_id: contribution._id }).save()
             res
                 .status(200)
                 .json({ message: "User Saved Successfully !!", contribution });
@@ -51,11 +51,9 @@ export const Load_wallet = async (req: Request | any, res: Response | any) => {
     }
 
 };
-
 export const get_wallet = async (req: Request | any, res: Response | any) => {
     try {
-        console.log("Cookies received:", req.cookies); // Debugging
-        let walet = await Wallet.findOne({ user_id: req.user._id })
+        let walet = await Wallet.findOne({ user_id: req.user.userId })
         res.status(200)
             .json(walet);
         return
@@ -69,10 +67,32 @@ export const get_wallet = async (req: Request | any, res: Response | any) => {
 }
 export const get_contributions = async (req: Request | any, res: Response | any) => {
     try {
-        let Contributions = await Contribution.find({ user_id: req.user._id }).limit(3).sort({ createdAt: -1 });
+        const { page = 1, limit = 10 } = req.query;
+        let Cont = await Contribution.find({ user_id: req.user.userId })
+        let contributions: any = await Contribution.find({ user_id: req.user.userId })
+            .skip((page - 1) * limit)  // Skips (page - 1) * limit documents
+            .limit(parseInt(limit))
+            .sort({ createdAt: -1 });
+        const summedData = Object.entries(
+            Cont.reduce((acc: any, transaction: any) => {
+                if (acc[transaction.type]) {
+                    acc[transaction.type] += transaction.amount;
+                } else {
+                    acc[transaction.type] = transaction.amount;
+                }
+                return acc;
+            }, {})
+        ).map(([type, amount]) => ({
+            type,
+            amount
+        }));
+        const total = await Contribution.countDocuments();
         res
             .status(200)
-            .json(Contributions);
+            .json({
+                contributions, summedData, page: parseInt(page),
+                totalPages: Math.ceil(total / limit),
+            });
         return
     } catch (error) {
         console.log(error);

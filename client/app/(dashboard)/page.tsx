@@ -5,18 +5,6 @@ import { motion } from "framer-motion";
 
 import Link from "next/link";
 
-// const Dashboard = () => {
-//   const { user, logout } = useAuth();
-
-//   if (!user) return <p>Loading...</p>;
-
-//   return (
-//     <div>
-//       <h2>Welcome, {user.phone_number}</h2>
-//       <button onClick={logout}>Logout</button>
-//     </div>
-//   );
-// };
 
 const page = () => {
   const games = [{
@@ -30,8 +18,8 @@ const page = () => {
     path: 'spin'
   }]
   return (
-    <>
 
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {games.map((_, i) => (
         <Link key={i} href={_.path}>
           <motion.div
@@ -44,7 +32,8 @@ const page = () => {
           </motion.div>
         </Link>
       ))}
-    </>
+    </div>
+
 
   )
 }

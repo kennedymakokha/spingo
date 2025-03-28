@@ -1,22 +1,78 @@
-import mongoose from 'mongoose'
-
-
+var mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
-const WalletSchema = new Schema({
 
-    contibution_id: {
+
+const MpesaLogsSchema = new Schema({
+
+    log: {
+
+        type: String
+
+    },
+    MerchantRequestID: {
+
+        type: String
+
+    },
+    type: {
+        type: String
+    },
+    package: {
         type: Schema.Types.ObjectId,
-        ref: "contribution",
+        ref: 'agent_agent_sent_packages'
     },
-    total_amount: {
-        type: Number,
-        default: 0
+    errand_package: {
+        type: Schema.Types.ObjectId,
+        ref: 'agent_agent_sent_packages'
+    },
+    doorstep_package: {
+        type: Schema.Types.ObjectId,
+        ref: 'doorStep_delivery_packages'
+    },
+    rent_package: {
+        type: Schema.Types.ObjectId,
+        ref: 'agent_agent_sent_packages'
+    },
+    sale: {
+        type: Schema.Types.ObjectId,
+        ref: 'agent_agent_sent_packages'
+    },
+    CheckoutRequestID: {
+
+        type: String
+
+    },
+    payLater: {
+
+        type: String
+
+    },
+    phone_number: {
+        type: String
+    },
+    ResponseCode: {
+        type: Number
+    },
+    MpesaReceiptNumber: {
+        type: String
+    },
+    amount: {
+        type: Number
+    },
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: 'user'
+    },
+    ResultDesc: {
+        type: String
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     },
 
-}, { timestamps: true });
+});
 
-
-
-export const MpesaLogs = mongoose.model('mpesa_logs', WalletSchema);
-
+let MpesaLogs = mongoose.model('mpesalog', MpesaLogsSchema)
+export default MpesaLogs

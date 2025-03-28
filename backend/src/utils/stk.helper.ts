@@ -1,6 +1,7 @@
 import fetch, { Headers } from "node-fetch";
 import axios from "axios";
 import moment from "moment";
+import MpesaLogs from "../models/mpesa_logs";
 
 
 const validatePhone = (phone: string): string => {
@@ -58,7 +59,7 @@ export const Mpesa_stk = async (
     );
 
     const token = response.data.access_token;
-    console.log(`token: ${token}`);
+
 
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
@@ -88,7 +89,15 @@ export const Mpesa_stk = async (
     );
 
     const data: any = await fetch_response.json();
-
+    await new MpesaLogs({
+        MerchantRequestID: data.MerchantRequestID,
+        CheckoutRequestID: data.CheckoutRequestID,
+        phone_number: phone,
+        amount: new_amount,
+        ResponseCode: data.ResponseCode,
+        user: user,
+        log: "",
+    }).save()
     return {
         MerchantRequestID: data.MerchantRequestID,
         CheckoutRequestID: data.CheckoutRequestID,

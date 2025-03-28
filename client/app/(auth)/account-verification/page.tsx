@@ -11,7 +11,7 @@ import Input from "@/components/ui/input";
 
 
 
-const AuthScreen = () => {
+const page = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [otp, setotp] = useState("");
 
@@ -24,7 +24,7 @@ const AuthScreen = () => {
         setError("");
 
         if (!otp) {
-            setError("Both fields are required");
+            setError("Enter the OTP sent on ");
             return;
         }
         // const res = await login({ otp, password }).unwrap();
@@ -78,4 +78,4 @@ const AuthScreen = () => {
     );
 };
 
-export default AuthScreen;
+export default page;

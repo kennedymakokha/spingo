@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 import generateTokens from "../utils/generateToken";
 import { parse } from "cookie";
 import { jwtDecode } from "jwt-decode";
+import { MakeActivationCode } from "../utils/generate_activation";
 
 
 // User Registration
@@ -24,19 +25,24 @@ export const register = async (req: Request, res: Response) => {
                 $or: [
                     { username: phone_number },
                     { phone_number: phone }
-                ]
+                ],
+
             }
         );
 
         if (userExists) {
-            res.status(400).json({ message: "User already exists" })
+            res.status(400).json("User already exists")
             return
         }
-        const user = new User({ username, phone_number: phone, password });
+
+        let activationcode = MakeActivationCode(4)
+        req.body.phone_number = phone
+        req.body.activationCode = activationcode
+        const user: any = new User(req.body);
         const newUser = await user.save();
-        let textbody = { subject: "affiliate Link", id: newUser._id, address: `${phone}`, Body: `Hi \nYour referal link is http://localhost:3000?affiliate=${1245}  ` }
+        let textbody = { subject: "affiliate Link", id: newUser._id, address: `${phone}`, Body: `Hi \nYour your activation Code for Marapesa is ${activationcode} ` }
         await SendMessage(textbody)
-        res.status(201).json({ message: "User registered successfully" });
+        res.status(201).json({ message: "User registered successfully", newUser });
         return;
 
     } catch (error) {
@@ -47,39 +53,133 @@ export const register = async (req: Request, res: Response) => {
     }
 };
 
+
+export const updatePassword = async (req: Request, res: Response) => {
+    try {
+        const { newPassword, phone_number } = req.body
+        const salt = await bcrypt.genSalt(10);  // Generate a salt
+        let phone = await Format_phone_number(phone_number);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);  // Hash the new password
+        const user: any = await User.findOne({ phone_number: phone });  // Find the user by ID
+        if (!user) {
+            res.status(400).json("user not found");
+            return
+        }
+        user.password = hashedPassword;  // Set the new hashed password
+        await user.save();  // Save the user with the updated password
+        res.status(200).json({ message: "Password updated successfully" });
+        return;
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Server error", error });
+        return;
+
+    }
+}
+export const activateuser = async (req: Request, res: Response) => {
+    try {
+        const { phone_number, code } = req.body
+        let phone = await Format_phone_number(phone_number);
+        const user = await User.findOne({ phone_number: phone });
+        if (!user) {
+            res.status(400).json("user not found");
+            return
+        }
+        if (user.activationCode === code) {
+            user.activationCode = null
+            user.activated = true
+            await user.save();
+            res.status(200).json({ message: "user activated " });
+            return;
+        }
+        else {
+            res.status(400).json("wrong Activation code ");
+            return
+        }
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Server error", error });
+        return;
+
+    }
+}
+export const verifyuser = async (req: Request, res: Response) => {
+    try {
+        const { phone_number, code } = req.body
+        let phone = await Format_phone_number(phone_number);
+        const user = await User.findOne({ phone_number: phone });
+        if (!user) {
+            res.status(400).json("user not found");
+            return
+        }
+        if (user.activationCode === code) {
+            res.status(200).json("code-is correct");
+            return
+        }
+        else {
+            res.status(400).json("wrong Activation code ");
+            return
+        }
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Server error", error });
+        return;
+
+    }
+}
+export const requestToken = async (req: Request, res: Response) => {
+    try {
+
+        const { phone_number } = req.body
+        let phone = await Format_phone_number(phone_number);
+        const user: any = await User.findOne({ phone_number: phone });  // Find the user by ID
+        if (!user) {
+            res.status(400).json("user not found");
+            return
+        }
+        let textbody = { subject: "otp request", id: user?._id, address: `${phone}`, Body: `Hi \nYour referal link is http://localhost:3000?affiliate=${1245}  ` }
+        await SendMessage(textbody)
+        res.status(200).json(`Token sent to ***********${phone.slice(-3)}`);
+        return;
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Server error", error });
+        return;
+
+    }
+}
+
+
 // User Login
 export const login = async (req: Request, res: Response) => {
 
     try {
         if (req.method !== "POST") {
-            res.status(405).json({ message: "Method Not Allowed" })
+            res.status(405).json("Method Not Allowed")
             return
         };
         const { phone_number, password } = req.body;
         let phone = await Format_phone_number(phone_number); //format the phone number
 
-        const userExists = await User.findOne({
+        const userExists: any = await User.findOne({
             $or: [
                 { username: phone_number },
                 { phone_number: phone }
             ]
         });
-
-        if (!userExists || !(await bcrypt.compare(password, userExists.password))) {
-            res.status(401).json({ message: "Invalid credentials" });
+        if (!userExists.activated) {
+            res.status(400).json("Kindly activate your account to continue")
             return
         }
-        const { accessToken, refreshToken } = generateTokens(userExists);
-
-        const decoded = jwtDecode(accessToken);
-
-        let user =
-            // Set HTTP-Only Cookie
-            // res.cookie("accessToken", accessToken, {
-            //     httpOnly: true,
-            //     secure: false, // Set `true` in production with HTTPS
-            //     sameSite: "lax",
-            //   });
+        if (!userExists || !(await bcrypt.compare(password, userExists.password))) {
+            res.status(401).json("Invalid credentials");
+            return
+        } else {
+            console.log("first")
+            const { accessToken, refreshToken } = generateTokens(userExists);
+            const decoded = jwtDecode(accessToken);
             res.setHeader("Set-Cookie", serialize("sessionToken", accessToken, {
                 httpOnly: false,
                 secure: process.env.NODE_ENV === "production", // Enable in production
@@ -87,44 +187,14 @@ export const login = async (req: Request, res: Response) => {
                 path: "/",
                 maxAge: 3600, // 1 hour
             }));
-        res.status(200).json({ ok: true, message: "Logged in", token: accessToken, exp: decoded?.exp });
-        return
+            res.status(200).json({ ok: true, message: "Logged in", token: accessToken, exp: decoded?.exp });
+            return
+        }
+
     } catch (error) {
 
     }
-    // try {
-    //     const { phone_number, password } = req.body;
-    //     let phone = await Format_phone_number(phone_number); //format the phone number
-    //     const userExists = await User.findOne({
-    //         $or: [
-    //             { username: phone_number },
-    //             { phone_number: phone }
-    //         ]
-    //     });
 
-    //     if (!userExists) {
-    //         res.status(400).json({ message: "Invalid credentials" })
-    //         return
-    //     };
-
-    //     const isMatch = await bcrypt.compare(password, userExists.password);
-    //     if (!isMatch) {
-    //         res.status(400).json({ message: "Invalid credentials" })
-    //         return
-    //     };
-
-    //     const { accessToken, refreshToken } = generateTokens(userExists);
-    //     res.cookie("refreshToken", refreshToken, {
-    //         httpOnly: true,
-    //         secure: true, // Set to true in production
-    //         sameSite: "strict"
-    //     });
-
-    //     res.json({ accessToken });
-    //     return
-    // } catch (error) {
-    //     res.status(500).json({ message: "Server error" });
-    // }
 
 };
 // session check
@@ -140,7 +210,7 @@ export const session_Check = async (req: Request, res: Response) => {
 
     try {
 
-        const user = jwt.verify(token, process.env.JWT_SECRET ? process.env.JWT_SECRET : "your_secret_key");
+        const user: any = jwt.verify(token, process.env.JWT_SECRET ? process.env.JWT_SECRET : "your_secret_key");
         // NextResponse.json(user);
         res.status(200).json(user);
         return

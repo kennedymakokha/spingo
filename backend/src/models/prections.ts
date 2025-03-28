@@ -9,6 +9,9 @@ const predictionSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "user",
     },
+    spin_id: {
+        type: String,
+    },
     stake: {
         type: Number,
         default: 0

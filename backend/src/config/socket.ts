@@ -1,5 +1,6 @@
 
 import { Socket } from "socket.io";
+import { MakeActivationCode } from "../utils/generate_activation";
 
 let io: any = null;
 
@@ -21,12 +22,13 @@ export const setupSocket = (socketInstance: any) => {
             } else {
                 flipResult = result === "tails" ? "heads" : result === "heads" ? "tails" : ""
             }
-            io.emit("flipResult", flipResult);
+
+            io.emit("flipResult", { flipResult, spin_id: MakeActivationCode(8) });
             predictors = []
             socket.emit("startGame")
         });
         socket.on("postPredict", prediction => {
-            console.log(prediction)
+
             let newItem = { socketId: socket.id, bet: prediction.bet, userId: prediction.uuid }
 
             if (!predictors.some((item: any) => item.socketId === socket.id)) {
@@ -37,7 +39,7 @@ export const setupSocket = (socketInstance: any) => {
         });
 
         socket.on("startGame", () => {
-            let countdown = 5;
+            let countdown = 20;
             io.emit("timerStart", countdown);
             const timerInterval = setInterval(() => {
                 countdown--;
@@ -46,6 +48,19 @@ export const setupSocket = (socketInstance: any) => {
                 } else {
                     clearInterval(timerInterval);
                     io.emit("enablePlay");
+                }
+            }, 1000);
+        });
+        socket.on("restartBrowser", () => {
+            let countdown = 10;
+            io.emit("browserStart", countdown);
+            const timerInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    io.emit("browsertimerUpdate", countdown);
+                } else {
+                    clearInterval(timerInterval);
+                    io.emit("restartNow");
                 }
             }, 1000);
         });

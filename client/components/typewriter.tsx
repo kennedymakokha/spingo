@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 
-const TypewriterEffect = ({ text, speed }: any) => {
+const TypewriterEffect = ({ text, speed, show }: any) => {
     const [displayedText, setDisplayedText] = useState('');
     const [index, setIndex] = useState(0);
 
@@ -17,9 +17,12 @@ const TypewriterEffect = ({ text, speed }: any) => {
     }, [index, text, speed]);
 
     return (
-        <div style={{ fontFamily: 'Courier New', fontSize: '24px', color: 'white' }}>
-            {displayedText}
-        </div>
+        <>
+            {show && <div style={{ fontFamily: 'Courier New', fontSize: '24px', color: 'white' }}>
+                {displayedText}
+            </div>}
+        </>
+
     );
 };
 

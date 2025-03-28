@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 import Link from "next/link";
-
+import { deleteCookie, setCookie } from 'cookies-next';
 import { socket } from "@/components/socket";
 import { LogOutUser } from "@/actions/authActions";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { UserData } from "@/types/transactions";
+// import { cookies } from "next/head/ers";
 
 const menuItems = [
   { name: "Dashboard", icon: "m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25", path: "/" },
@@ -24,10 +25,13 @@ export default function Dashboard({
   const [active, setActive] = useState("Dashboard");
   const router = useRouter()
   const [user, setUser] = useState<UserData>();
+  const [data, setData] = useState<any>();
+  // const cookieStore: any = cookies();
   const fetchData = async () => {
     try {
       const response = await apiClient().get(`authenticated`);
-
+      const result = await apiClient().get<any>(`wallet`);
+      setData(result?.data);
       setUser(response.data)
     } catch (err) {
       router.push('/login')
@@ -38,16 +42,12 @@ export default function Dashboard({
     fetchData();
   }, []);
 
-  useEffect(() => {
-
-
-    // socket.on('disconnect', () => {
-    //   console.log('Disconnected from socket')
-    // })
-
-  }, []);
   const logout = async () => {
     await LogOutUser()
+    localStorage.removeItem("accessToken");
+    setCookie('sessionToken', '', { expires: new Date(0) });
+
+    router.push("/login");
     socket.on('disconnect', () => {
       console.log('Disconnected from socket')
     })
@@ -55,7 +55,7 @@ export default function Dashboard({
 
   // [...Array(6)]
   return (
-    <div className="flex h-screen  bg-gray-900 text-white">
+    <div className="flex min-h-[100vh] min-w-[100vw]  bg-gray-900 text-white">
       {/* Sidebar */}
       <aside className="w-64 bg-black bg-opacity-80 p-6 flex flex-col justify-between shadow-lg">
         <div>
@@ -92,12 +92,12 @@ export default function Dashboard({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 min-w-[100vw] overflow-y-auto">
-        <div className="flex items-center w-full"><h2 className="text-3xl font-bold text-end capitalize   mb-4">  {user?.username}</h2></div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {children}
+      <main className="flex-1 p-6 min-w-[60vw] overflow-hidden">
+        <div className="flex items-center w-full justify-between">
+          <h2 className="text-3xl font-bold text-end capitalize   mb-4">  {user?.username}</h2>
+          <span className="text-3xl "> Balance :{data?.total_amount}</span>
         </div>
+        {children}
       </main>
     </div>
   );
