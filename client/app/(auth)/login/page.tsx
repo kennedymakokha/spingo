@@ -26,6 +26,12 @@ const AuthScreen = () => {
     const router = useRouter();
     // const dispatch = useDispatch
     // const [login, isFetching,] = useLoginMutation();
+    const startTimer = (time: any) => {
+        socket.emit("restartBrowser", time)
+        socket.on("browsertimerUpdate", (dur) => {
+            setTimer(dur)
+        })
+    }
     const handleSubmit = async (e: React.FormEvent) => {
         try {
             e.preventDefault();
@@ -53,12 +59,7 @@ const AuthScreen = () => {
                     } else {
                         setStep(2);
                         setIsLogin(false)
-                        socket.emit("restartBrowser", (flipResult: string) => {
-                            // console.log("durations")
-                        });
-                        socket.on("browsertimerUpdate", (dur) => {
-                            setTimer(dur)
-                        })
+                        startTimer(60)
                         return
                     }
                 }, 2000); // Delay to show success message
@@ -67,6 +68,7 @@ const AuthScreen = () => {
                 if (response.message === "Kindly activate your account to continue") {
                     setStep(2);
                     setIsLogin(false)
+                    startTimer(20)
                 }
                 setError(response.message);
             }

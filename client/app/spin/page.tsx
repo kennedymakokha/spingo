@@ -65,9 +65,7 @@ export default function page() {
         fetchData();
     }, [balance]);
     useEffect(() => {
-        socket.emit("startGame", (flipResult: string) => {
-            // console.log("durations")
-        });
+        socket.emit("startGame", 20);
         socket.on("timerUpdate", (dur) => {
             setTimer(dur)
 
@@ -90,13 +88,12 @@ export default function page() {
     useEffect(() => {
 
         socket.on("flipResult", (flipResult: any) => {
-            setResult(flipResult.result);
+            setResult(flipResult.flipResult);
             setSpin_id(flipResult.spin_id)
             const correct = flipResult === prediction;
             setIsCorrect(correct);
             setBalance(correct ? balance + stake : balance - stake);
             setTimeout(() => setIsFlipping(false), 5000)
-
         });
         // socket.on("spin_id",spin)
     }, [balance, prediction])
@@ -106,8 +103,7 @@ export default function page() {
             fetchData()
         }
         if (!isFlipping && result) {
-            socket.emit("restartBrowser", (flipResult: string) => {
-            });
+            socket.emit("restartBrowser", 10);
             socket.on("browsertimerUpdate", (dur) => {
 
                 setRestartTime(dur)
@@ -127,7 +123,9 @@ export default function page() {
 
             <Image src={bgImage} alt="result" className="w-full h-full object-cover" width={1200} height={1200} />
             <div className="absolute inset-x-0 capitalize bottom-6 h-10  flex justify-center items-center z-12">
-                {TypewriterEffect({ text: `Game restarts in 10 seconds `, speed: 60, show: restartTime > 2 ? true : false })}
+                <div style={{ fontFamily: 'Courier New', fontSize: '24px', color: 'white' }}>
+                    {restartTime > 2 && `Game restarts in ${restartTime} seconds `}
+                </div>
             </div>
             <div className="absolute right-[10%] top-2 h-10  flex justify-center items-center z-12">
                 <p style={{ textShadow: `0px 0px 19px  ${isCorrect === null ? "white" : isCorrect === true ? "green" : "red"}` }} className={`text-lg  font-semibold mb-4  ${isCorrect === null && !isFlipping ? "text-white" : isCorrect === true && !isFlipping && result ? "text-green-200" : "text-red-500"}`}>Balance: Ksh {balance}</p>

@@ -58,6 +58,35 @@ export const loginUser = async (form: any) => {
     }
 
 }
+export const loginAdmin = async (form: any) => {
+    const { phone_number, password } = form
+
+    try {
+        const user = {
+            phone_number, password
+        }
+        const requestOptions = {
+            method: "POST", // Specify the request method
+            headers: { "Content-Type": "application/json" }, // Specify the content type
+            body: JSON.stringify(user) // Send the data in JSON format
+        };
+        const result = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/admin-login`, requestOptions)
+        const responseData = await result.json()
+      
+        if (result.status === 200) {
+            return parseServerActionResponse({ ...result, error: "", status: 200, success: true, message: responseData })
+        }
+        else {
+
+            return { success: false, message: responseData };
+        }
+
+    } catch (error) {
+        console.log(error)
+        return parseServerActionResponse({ error: JSON.stringify(error), status: 'Error' })
+    }
+
+}
 
 export const RegisterUser = async (form: any) => {
 

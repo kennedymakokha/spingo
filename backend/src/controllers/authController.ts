@@ -11,6 +11,7 @@ import generateTokens from "../utils/generateToken";
 import { parse } from "cookie";
 import { jwtDecode } from "jwt-decode";
 import { MakeActivationCode } from "../utils/generate_activation";
+import { Admin } from "../models/admin";
 
 
 // User Registration
@@ -52,7 +53,6 @@ export const register = async (req: Request, res: Response) => {
 
     }
 };
-
 
 export const updatePassword = async (req: Request, res: Response) => {
     try {
@@ -177,7 +177,7 @@ export const login = async (req: Request, res: Response) => {
             res.status(401).json("Invalid credentials");
             return
         } else {
-            console.log("first")
+
             const { accessToken, refreshToken } = generateTokens(userExists);
             const decoded = jwtDecode(accessToken);
             res.setHeader("Set-Cookie", serialize("sessionToken", accessToken, {
@@ -197,6 +197,7 @@ export const login = async (req: Request, res: Response) => {
 
 
 };
+
 // session check
 export const session_Check = async (req: Request, res: Response) => {
     const cookies = parse(req.headers.cookie || "");
@@ -252,3 +253,128 @@ export const logout = async (req: Request, res: Response) => {
     res.status(200).json({ message: "Logged out" });
     return
 };
+
+
+//admin 
+
+
+export const registerAdmin = async (req: Request, res: Response) => {
+    try {
+        const { username, password, phone_number } = req.body;
+        let newID = ` ${Date()}-${MakeActivationCode(4)}`
+
+        req.body.username = "Admin"
+        let phone = await Format_phone_number(phone_number); //format the phone number
+        const userExists: any = await Admin.findOne(
+            {
+                $or: [
+
+                    { phone_number: phone }
+                ],
+
+            }
+        );
+
+        if (userExists) {
+            res.status(400).json("User already exists")
+            return
+        }
+        req.body.phone_number = phone
+        const user: any = new Admin(req.body);
+        const newAdmin = await user.save();
+
+        res.status(201).json({ message: "admin added  successfully", newAdmin });
+        return;
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Server error", error });
+        return;
+
+    }
+};
+export const admin_login = async (req: Request, res: Response) => {
+
+    try {
+        if (req.method !== "POST") {
+            res.status(405).json("Method Not Allowed")
+            return
+        };
+        const { phone_number, password } = req.body;
+        let phone = await Format_phone_number(phone_number); //format the phone number
+        const userExists: any = await Admin.findOne({ phone_number: phone });
+        if (!userExists || !(await bcrypt.compare(password, userExists.password))) {
+            res.status(401).json("Invalid credentials");
+            return
+        } else {
+
+            const { accessToken, refreshToken } = generateTokens(userExists);
+            const decoded = jwtDecode(accessToken);
+            res.setHeader("Set-Cookie", serialize("admin-sessionToken", accessToken, {
+                httpOnly: false,
+                secure: process.env.NODE_ENV === "production", // Enable in production
+                sameSite: "lax",
+                path: "/",
+                maxAge: 3600, // 1 hour
+            }));
+            res.status(200).json({ ok: true, message: "Logged in", token: accessToken, exp: decoded?.exp });
+            return
+        }
+
+    } catch (error) {
+
+    }
+
+
+};
+export const get_Users = async (req: Request | any, res: Response | any) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+        // let Cont = await Contribution.find({ user_id: req.user.userId })
+        let users: any = await User.find().select('-password -_id -updatedAt -__v')
+            .skip((page - 1) * limit)  // Skips (page - 1) * limit documents
+            .limit(parseInt(limit))
+            .sort({ createdAt: -1 });
+
+        const total = await User.countDocuments();
+        res
+            .status(200)
+            .json({
+                users, page: parseInt(page),
+                totalPages: Math.ceil(total / limit),
+            });
+        return
+    } catch (error) {
+        console.log(error);
+        res
+            .status(400)
+            .json({ success: false, message: "operation failed ", error });
+        return
+    }
+}
+export const get_Admins = async (req: Request | any, res: Response | any) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+        // let Cont = await Contribution.find({ user_id: req.user.userId })
+        let users: any = await Admin.find().select('-password -_id -updatedAt -__v -activated')
+            .skip((page - 1) * limit)  // Skips (page - 1) * limit documents
+            .limit(parseInt(limit))
+            .sort({ createdAt: -1 });
+
+        const total = await Admin.countDocuments();
+        res
+            .status(200)
+            .json({
+                users, page: parseInt(page),
+                totalPages: Math.ceil(total / limit),
+            });
+        return
+    } catch (error) {
+        console.log(error);
+        res
+            .status(400)
+            .json({ success: false, message: "operation failed ", error });
+        return
+    }
+}
+

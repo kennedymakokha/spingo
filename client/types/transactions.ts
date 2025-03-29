@@ -14,6 +14,7 @@ export interface BetData {
     _id: string;
     stake: number;
     prediction: "heads" | "tails";
+    spin_id: string;
     outcome: "heads" | "tails";
     createdAt: string;
 }
