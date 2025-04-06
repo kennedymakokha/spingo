@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react'
 
 const page = () => {
     const [loading, setLoading] = useState(true);
-    const [transactions, setTransactions] = useState<any>(null);
+
     const [data, setdata] = useState<any>(null);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(1);

@@ -19,10 +19,13 @@ export interface BetData {
     createdAt: string;
 }
 export interface UserData {
-    _id: string;
-    phone_number: number;
-    username: string;
-    createdAt: string;
+    _id?: string;
+    id?: string;
+    role?: string
+    phone_number?: number;
+    username?: string;
+    createdAt?: string;
+    avatar?: string;
 }
 
 

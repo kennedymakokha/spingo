@@ -1,9 +1,12 @@
 
 import { Socket } from "socket.io";
 import { MakeActivationCode } from "../utils/generate_activation";
+import { ChatMessage } from "../types";
+import Message from "../models/messages";
+import { encryptMessage } from "./encrypt";
 
 let io: any = null;
-
+let users: { [key: string]: string } = {};
 export const setupSocket = (socketInstance: any) => {
     io = socketInstance;
     let predictors: any = []
@@ -17,7 +20,7 @@ export const setupSocket = (socketInstance: any) => {
                 return acc;
             }, { heads: 0, tails: 0 });
             const result = outcome.heads > outcome.tails ? "heads" : outcome.tails > outcome.heads ? "tails" : "equal";
-          
+
             console.log(result)
             if (result === "equal" || predictors.length === 1) {
                 flipResult = Math.random() > 0.5 ? "heads" : "tails";
@@ -65,8 +68,48 @@ export const setupSocket = (socketInstance: any) => {
             }, 1000);
         });
 
+        socket.on("join", (username: string) => {
+            users[username] = socket.id; // Store username and socket ID
+            console.log(`${username} joined the chat`);
+            // Broadcast to other users that a user has joined
+            socket.broadcast.emit("user-joined", username);
+        });
+
+        socket.on("message", async (msg: ChatMessage) => {
+            // console.log("Message received:", msg);
+            const encrypted = encryptMessage(msg.message);
+            const message = new Message({
+                socketId: msg.socketId,
+                sender: msg.userId,
+                receiver: msg.toId,
+                message: msg.message,
+                type: "user", // you can change based on your logic
+            });
+
+            await message.save();
+            socket.broadcast.emit("message", msg);
+        });
+        socket.on("typing", (username: string) => {
+            socket.broadcast.emit("typing", username); // broadcast to everyone except sender
+        });
+
+        // When they stop typing
+        socket.on("stopTyping", () => {
+            socket.broadcast.emit("stopTyping");
+        });
+
         socket.on("disconnect", () => {
-            console.log("User disconnected:", socket.id);
+            // Find the user who disconnected (You can map users to socket ids)
+            const username = Object.keys(users).find(user => users[user] === socket.id);
+
+            if (username) {
+                console.log(`${username} disconnected`);
+                // Remove the user from the list
+                delete users[username];
+
+                // Notify others that the user has left the chat
+                socket.broadcast.emit("user-left", username); // Emit to everyone except the leaving user
+            }
         });
     });
 };

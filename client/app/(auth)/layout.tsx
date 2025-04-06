@@ -13,9 +13,9 @@ import Input from "@/components/ui/input";
 
 const AuthScreen = ({
     children,
-  }: Readonly<{
+}: Readonly<{
     children: React.ReactNode;
-  }>) => {
+}>) => {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -51,10 +51,10 @@ const AuthScreen = ({
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 1, ease: "easeOut" }}
                 >
-                    MARAPESA
-                    <span className="lowercase font-thin text-[20px] text-pink-500">Multiply it </span>
+                    <div><span className="text-[#22b14c]">MARA</span><span className="text-[#ed1c24]">PESA</span></div>
+                    <span className="lowercase font-thin text-[20px] text-[#ed1c24]">Multiply it </span>
                 </motion.div>
-                
+
                 {children}
             </div>
             <div className="absolute inset-0 bg-black opacity-60 flex justify-center items-center z-10"></div>

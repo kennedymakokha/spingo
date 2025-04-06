@@ -9,6 +9,7 @@ import { connectDB } from "./config/db";
 import walletRoutes from './routes/walletRoutes'
 import authRoutes from './routes/authRoutes'
 import predictRoutes from './routes/predictRoutes'
+import MessagesRoute from './routes/messageRoute'
 import { authenticateToken } from "./middleware/authMiddleware";
 // import { authMiddleware } from './middleware/authMiddleware'
 import bodyParser from "body-parser";
@@ -37,6 +38,7 @@ const io: any = new Server(httpServer, {
 app.use("/api/auth", authRoutes);
 app.use("/api/wallet", authenticateToken, walletRoutes);
 app.use("/api/predictions", authenticateToken, predictRoutes);
+app.use("/api/messages", authenticateToken, MessagesRoute);
 app.get("/api/authenticated", authenticateToken, async (req: any, res) => {
   let authuser = await User.findById(req.user.userId)
   res.json(authuser);

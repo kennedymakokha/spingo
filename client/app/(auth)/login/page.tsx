@@ -5,14 +5,12 @@ import { useRouter } from "next/navigation";
 
 import { motion, AnimatePresence } from "framer-motion";
 import Input from "@/components/ui/input";
-import { activateUser, loginUser, RegisterUser, verifyOtp, } from "@/actions/authActions";
+import { activateUser, loginUser, RegisterUser, verifyOtp } from "@/actions/authActions";
 import { socket } from "@/components/socket";
 import SuccessFailure from "@/components/successFailure";
 import { setCookie } from "cookies-next";
 import apiClient from "@/lib/apiClient";
 // import { useLoginMutation } from "@/app/features/slices/userSlice";
-
-
 
 
 const AuthScreen = () => {
@@ -23,15 +21,16 @@ const AuthScreen = () => {
     const [timer, setTimer] = useState(0);
     const [step, setStep] = useState(1);
     const [otp, setOtp] = useState("");
+    const [user, setUser] = useState({});
     const router = useRouter();
-    // const dispatch = useDispatch
-    // const [login, isFetching,] = useLoginMutation();
+
     const startTimer = (time: any) => {
         socket.emit("restartBrowser", time)
         socket.on("browsertimerUpdate", (dur) => {
             setTimer(dur)
         })
     }
+
     const handleSubmit = async (e: React.FormEvent) => {
         try {
             e.preventDefault();
@@ -78,6 +77,7 @@ const AuthScreen = () => {
             setError("An error occurred. Please try again.");
         }
     };
+
     const handleVerification = async (e: React.FormEvent) => {
         try {
             e.preventDefault();
@@ -91,30 +91,28 @@ const AuthScreen = () => {
                 otp: otp
             })
             if (res.success === true) {
-                setSuccess("Account activated  successful! Redirecting...");
+                setSuccess("Account activated successfully! Redirecting...");
                 setTimeout(() => {
                     setStep(1)
                     setIsLogin(true)
                     setSuccess("")
                     router.push("/login");
                 }, 2000); // Delay to show success message
-
-
             } else {
                 setError(res.message);
             }
             console.log(res)
-
-
         } catch (error) {
             console.log(error)
             setError("Enter the OTP sent on ");
         }
     };
+
     const fetchData = async () => {
         try {
             const response = await apiClient().get(`authenticated`);
             if (response) {
+                setUser(response)
                 router.push('/')
             }
         } catch (err) {
@@ -122,9 +120,11 @@ const AuthScreen = () => {
             console.log(err)
         }
     };
+
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [user]);
+
     useEffect(() => {
         socket.on("connect", () => {
             console.log("Connected to socket");
@@ -184,11 +184,12 @@ const AuthScreen = () => {
                     />}
 
                     <motion.div whileHover={{ scale: 1.05 }}>
-                        <button type="submit" className="w-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 text-white font-semibold py-2 rounded-lg shadow-md shadow-blue-400">
+                        <button type="submit" className="w-full bg-[#22b14c] flex items-center justify-center hover:bg-[#22b14c] text-white font-semibold py-2 rounded-lg shadow-md shadow-[#22b14c]">
                             {isLogin ? "Login" : "Register"}
                         </button>
                     </motion.div>
                 </form>}
+
                 {step === 2 && (
                     <form onSubmit={handleVerification} className="space-y-4">
                         <Input
@@ -198,36 +199,34 @@ const AuthScreen = () => {
                             onChange={(e) => setOtp(e.target.value)}
                         />
                         <motion.div whileHover={{ scale: 1.05 }}>
-                            <button type="submit" className="w-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 text-white font-semibold py-2 rounded-lg shadow-md shadow-blue-400">
+                            <button type="submit" className="w-full bg-[#22b14c] flex items-center justify-center hover:bg-[#22b14c] text-white font-semibold py-2 rounded-lg shadow-md shadow-[#22b14c]">
                                 submit
                             </button>
                         </motion.div>
                     </form>
                 )}
+
                 <p className="text-center text-sm text-gray-600 mt-4">
-                    {step === 1 ? <>
-                        {isLogin ? "Don't have an account?" : "Already have an account?"}
+                    {step === 1 ? <>{isLogin ? "Don't have an account?" : "Already have an account?"}
                         <button
                             onClick={() => setIsLogin(!isLogin)}
-                            className="text-blue-500 hover:underline ml-1"
+                            className="text-[#22b14c] hover:underline ml-1"
                         >
                             {isLogin ? "Sign up" : "Login"}
                         </button>
                     </> : <>
                         <button
                             onClick={() => setIsLogin(!isLogin)}
-                            className={`text-slate-500 ${timer === 1 && "bg-slate-400 px-4 py-2 rounded-md text-blue-500 font-bold"} shadow-2xl cursor-pointer  ml-1`}
+                            className={`text-slate-500 ${timer === 1 && "bg-slate-400 px-4 py-2 rounded-md text-[#22b14c] font-bold"} shadow-2xl cursor-pointer  ml-1`}
                         >
                             {timer !== 1 ? `Resent code in ${timer} ` : "Resend"}
                         </button>
                     </>}
-
                 </p>
-                {step === 1 && isLogin && <p onClick={() => router.push('reset-password')} className="text-center hover:text-blue-500 cursor-pointer text-sm text-gray-400">Forgot Password</p>}
+
+                {step === 1 && isLogin && <p onClick={() => router.push('reset-password')} className="text-center hover:text-[#22b14c] cursor-pointer text-sm text-gray-400">Forgot Password</p>}
             </motion.div>
         </AnimatePresence>
-
-
     );
 };
 

@@ -329,9 +329,9 @@ export const admin_login = async (req: Request, res: Response) => {
 };
 export const get_Users = async (req: Request | any, res: Response | any) => {
     try {
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10, sendId } = req.query;
         // let Cont = await Contribution.find({ user_id: req.user.userId })
-        let users: any = await User.find().select('-password -_id -updatedAt -__v')
+        let users: any = await User.find().select(`-password ${sendId ? "" : "-_id"} -updatedAt -__v`)
             .skip((page - 1) * limit)  // Skips (page - 1) * limit documents
             .limit(parseInt(limit))
             .sort({ createdAt: -1 });
