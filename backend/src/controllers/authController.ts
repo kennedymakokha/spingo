@@ -86,7 +86,7 @@ export const activateuser = async (req: Request, res: Response) => {
             return
         }
         if (user.activationCode === code) {
-            user.activationCode = null
+            user.activationCode = ""
             user.activated = true
             await user.save();
             res.status(200).json({ message: "user activated " });

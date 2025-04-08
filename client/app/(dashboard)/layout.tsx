@@ -30,7 +30,7 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
-  const [newMessage, setNewMessage] = useState("");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [messages, setMessages] = useState<string[] | any>([
   ]);
@@ -53,6 +53,8 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
       const response = await apiClient().get(`authenticated`);
       const result = await apiClient().get<any>(`wallet`);
       setData(result?.data);
+      socket.emit("update-wallet", response.data._id);
+    
       setUser(response.data);
     } catch (err) {
       router.push('/login');
@@ -79,9 +81,7 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
   const closeChat = () => setChatOpen(false);
   const fetchConversationHistory = async (user1: string) => {
     try {
-
       const response = await apiClient().get<any>(`messages?user=${user1}`);
-
       setMessages(response?.data); // Set the messages in your state
     } catch (err) {
       console.error("Error fetching chat history:", err);
@@ -91,6 +91,7 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
     if ("Notification" in window && Notification.permission !== "granted") {
       Notification.requestPermission();
     }
+   
   }, []);
   const showDesktopNotification = (message: string, from: string) => {
     if (Notification.permission === "granted") {
@@ -117,7 +118,14 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
     });
   }, [chatOpen]);
 
-
+  useEffect(() => {
+  
+    socket.on("update-wallet", async (msg) => {
+      console.log("MSG", "msg")
+     
+      // setData(result?.data);
+    });
+  }, [data]);
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-900 text-white">
 
@@ -197,6 +205,15 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
             {/* User List or Chat View */}
             {!selectedUser ? (
               <div className="flex-1 overflow-y-auto">
+                <div className="p-4">
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2 rounded-md bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-slate-50 transition"
+                  />
+                </div>
                 {chatUsers
                   .filter((u: any) =>
                     u.username.toLowerCase().includes(searchTerm.toLowerCase())
@@ -205,7 +222,7 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
                     <button
                       key={u._id}
                       onClick={() => { setSelectedUser(u); fetchConversationHistory(u._id) }}
-                      className="w-full text-left px-4 py-3 hover:bg-[#ed1c24] transition border-b border-gray-700 flex items-center space-x-3"
+                      className="w-full text-left px-4 py-3 hover:bg-gray-700 transition border-b border-gray-700 flex items-center space-x-3"
                     >
                       {/* Avatar */}
                       {u.avatar ? (
@@ -215,7 +232,7 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
                           className="w-8 h-8 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-[#22b14c] text-white flex items-center justify-center font-semibold">
+                        <div className="w-8 h-8 rounded-full bg-green-400 text-slate-600 flex items-center justify-center font-semibold">
                           {u.username.charAt(0).toUpperCase()}
                         </div>
                       )}

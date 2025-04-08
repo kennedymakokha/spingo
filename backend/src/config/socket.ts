@@ -4,6 +4,8 @@ import { MakeActivationCode } from "../utils/generate_activation";
 import { ChatMessage } from "../types";
 import Message from "../models/messages";
 import { encryptMessage } from "./encrypt";
+import { get_wallet } from "../controllers/walletControllers";
+import Wallet from "../models/wallet";
 
 let io: any = null;
 let users: { [key: string]: string } = {};
@@ -88,6 +90,11 @@ export const setupSocket = (socketInstance: any) => {
 
             await message.save();
             socket.broadcast.emit("message", msg);
+        });
+        socket.on("update-wallet", async (id: string) => {
+            let wallet = await Wallet.findOne({ user_id: id })
+           
+            socket.broadcast.emit("update-wallet", wallet);
         });
         socket.on("typing", (username: string) => {
             socket.broadcast.emit("typing", username); // broadcast to everyone except sender

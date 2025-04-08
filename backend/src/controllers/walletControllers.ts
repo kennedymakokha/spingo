@@ -3,16 +3,13 @@ import { User } from "../models/user";
 import Wallet from '../models/wallet'
 import { Request, Response } from "express";
 import Mpesa_stk from "../utils/stk.helper";
+import { getSocketIo } from "../config/socket";
+let io = getSocketIo()
 export const Load_wallet = async (req: Request | any, res: Response | any) => {
     try {
         const { amount, type, payment_phone_number } = req.body
         let AuthUser: any = await User.findOne({ _id: req.user.userId })
         let phone = AuthUser.phone_number
-        // if (!req.body.payment_phone_number) {
-        //     phone = AuthUser.phone_number
-        // }
-        // console.log(AuthUser)
-        // return
         if (type === "deposit") {
             await Mpesa_stk(
                 phone,
@@ -30,13 +27,19 @@ export const Load_wallet = async (req: Request | any, res: Response | any) => {
                 new_wallet_ammount = parseInt(walet.total_amount) + parseInt(req.body.amount)
             }
             const Update = await Wallet.findOneAndUpdate({ user_id: req.user.userId }, { total_amount: new_wallet_ammount }, { new: true, useFindAndModify: false })
+            io?.emit('update-cash')
             res
                 .status(200)
                 .json(Update);
+
+
+            // io?.to(`${req.uid}`).emit("unread-notifications", count);
+
             return
         } else {
             new_wallet_ammount = amount
             await new Wallet({ user_id: req.user.userId, total_amount: new_wallet_ammount, contibution_id: contribution._id }).save()
+            io?.emit('update-cash')
             res
                 .status(200)
                 .json({ message: "User Saved Successfully !!", contribution });

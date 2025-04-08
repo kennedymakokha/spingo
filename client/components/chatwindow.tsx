@@ -132,7 +132,7 @@ const ChatWindow = ({ username, chatwith, onClose, fetchConversationHistory, toI
             {/* Header */}
             <div className="flex justify-between items-center bg-[#22b14c] text-white px-4 py-3 rounded-t-2xl">
                 <h3 className="font-bold italic">{chatwith}</h3>
-                <svg xmlns="http://www.w3.org/2000/svg"  onClick={onClose} fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
+                <svg xmlns="http://www.w3.org/2000/svg" onClick={onClose} fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
             </div>
@@ -145,14 +145,14 @@ const ChatWindow = ({ username, chatwith, onClose, fetchConversationHistory, toI
                         <>
                             {msg.type === "system" ?
                                 <div
-                                    key={index}
+                                    key={msg?.username}
                                     className="text-center text-sm text-gray-400 italic my-2"
                                 >
                                     {msg.message}
                                 </div> :
 
                                 <motion.div
-                                    key={index}
+                                    key={msg?._id}
                                     className={`flex items-end ${isOwn ? "justify-end" : "justify-start"}`}
 
                                     initial={{ opacity: 0, y: 10 }}
