@@ -36,7 +36,7 @@ const io: any = new Server(httpServer, {
   },
 });
 app.use("/api/auth", authRoutes);
-app.use("/api/wallet", authenticateToken, walletRoutes);
+app.use("/api/wallet", walletRoutes);
 app.use("/api/predictions", authenticateToken, predictRoutes);
 app.use("/api/messages", authenticateToken, MessagesRoute);
 app.use("/api/sms", SmsRoute);
