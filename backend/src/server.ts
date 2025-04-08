@@ -3,7 +3,6 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
-import { Request, Response } from "express";
 import { setupSocket } from './config/socket'
 import { connectDB } from "./config/db";
 import walletRoutes from './routes/walletRoutes'
@@ -11,7 +10,6 @@ import authRoutes from './routes/authRoutes'
 import predictRoutes from './routes/predictRoutes'
 import MessagesRoute from './routes/messageRoute'
 import { authenticateToken } from "./middleware/authMiddleware";
-// import { authMiddleware } from './middleware/authMiddleware'
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import { User } from "./models/user";
@@ -19,7 +17,7 @@ import cors from 'cors'
 dotenv.config();
 const app = express();
 
-app.use(cors({ credentials: true, origin: ["http://localhost:3000", "https://spingofrontend.vercel.app"] }))
+app.use(cors({ credentials: true, origin: ["http://localhost:3000", "https://spingofrontend.vercel.app","https://api.marapesa.com"] }))
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -29,7 +27,7 @@ connectDB();
 const httpServer = createServer(app);
 const io: any = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:3000", "https://spingofrontend.vercel.app","https://marapesa.com","http://185.113.249.137:3000"],
+    origin: ["http://localhost:3000", "https://spingofrontend.vercel.app","https://marapesa.com","http://185.113.249.137:3000","https://api.marapesa.com"],
     methods: ["GET", "POST"],
     credentials: true, // Allow credentials like cookies
     allowedHeaders: "Content-Type,Authorization", // Allow headers
