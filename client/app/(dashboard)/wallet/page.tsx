@@ -46,11 +46,14 @@ const page = () => {
 
   const submit = async () => {
     try {
-      await apiClient().post(`wallet`, item)
+      setLoading(true); // Start loading
+      let v = await apiClient().post(`wallet`, item)
       await fetchData();
       setIsModalOpen(false)
     } catch (error) {
-
+      setError("Error loading data");
+    } finally {
+      setLoading(false); // Stop loading
     }
   }
   return (
