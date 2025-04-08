@@ -81,7 +81,7 @@ export const Mpesa_stk = async (
                 PartyA: phone,
                 PartyB: 4115395,
                 PhoneNumber: phone,
-                CallBackURL: "https://stagingapi.pickupmtaani.com/api/CallbackUrl",
+                CallBackURL: "https://api.marapesa.com/api/wallet/mpesa-callback",
                 AccountReference: "Mtadao Pack Ltd",
                 TransactionDesc: "Payment delivery of *",
             }),
