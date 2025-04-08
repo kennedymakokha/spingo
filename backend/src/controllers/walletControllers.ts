@@ -18,12 +18,12 @@ export const Load_wallet = async (req: Request | any, res: Response | any) => {
                 req?.user?._id,
             );
             let Logs: any = await MpesaLogs.findOne({ MerchantRequestID: response.MerchantRequestID })
-           
+
             while (Logs?.logs === "") {
-                await new Promise(resolve => setTimeout(resolve, 5000)); 
+                await new Promise(resolve => setTimeout(resolve, 5000));
                 Logs = await MpesaLogs.findOne({ MerchantRequestID: response.MerchantRequestID });
             }
-          
+
 
         }
         let walet = await Wallet.findOne({ user_id: req.user.userId })
@@ -122,6 +122,8 @@ export const mpesa_callback = async (req: Request | any, res: Response | any) =>
         const Logs = await MpesaLogs.find({
             MerchantRequestID: req.body.Body?.stkCallback?.MerchantRequestID
         })
+        console.log("LOGS", Logs)
+        console.log("BODY", req.body)
         for (let i = 0; i < Logs.length; i++) {
 
             await MpesaLogs.findOneAndUpdate(
