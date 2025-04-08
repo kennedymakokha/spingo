@@ -4,7 +4,7 @@ import { User } from "../models/user";
 import { Format_phone_number } from "../utils/simplefunctions";
 import jwt from "jsonwebtoken";
 
-import { SendMessage } from "../utils/sms_sender";
+import { sendTextMessage } from "../utils/sms_sender";
 import { serialize } from "cookie";
 import bcrypt from "bcryptjs";
 import generateTokens from "../utils/generateToken";
@@ -42,7 +42,8 @@ export const register = async (req: Request, res: Response) => {
         const user: any = new User(req.body);
         const newUser = await user.save();
         let textbody = { subject: "affiliate Link", id: newUser._id, address: `${phone}`, Body: `Hi \nYour your activation Code for Marapesa is ${activationcode} ` }
-        await SendMessage(textbody)
+
+        await sendTextMessage(`Hi ${newUser.username} \nWelcome to Marapesa\nYour your activation Code is ${activationcode}`, `${phone}`, newUser._id)
         res.status(201).json({ message: "User registered successfully", newUser });
         return;
 
@@ -140,7 +141,7 @@ export const requestToken = async (req: Request, res: Response) => {
             return
         }
         let textbody = { subject: "otp request", id: user?._id, address: `${phone}`, Body: `Hi \nYour referal link is http://localhost:3000?affiliate=${1245}  ` }
-        await SendMessage(textbody)
+        // await SendMessage(textbody)
         res.status(200).json(`Token sent to ***********${phone.slice(-3)}`);
         return;
     } catch (error) {
