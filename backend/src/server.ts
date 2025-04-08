@@ -17,7 +17,7 @@ import cors from 'cors'
 dotenv.config();
 const app = express();
 
-app.use(cors({ credentials: true, origin: ["http://localhost:3000", "https://spingofrontend.vercel.app","https://api.marapesa.com"] }))
+app.use(cors({ credentials: true, origin: ["http://localhost:3000","https://marapesa.com", "https://spingofrontend.vercel.app","https://api.marapesa.com"] }))
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
