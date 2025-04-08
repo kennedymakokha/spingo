@@ -119,11 +119,12 @@ export const get_contributions = async (req: Request | any, res: Response | any)
 
 export const mpesa_callback = async (req: Request | any, res: Response | any) => {
     try {
+        console.log("BODY", req.body)
         const Logs = await MpesaLogs.find({
             MerchantRequestID: req.body.Body?.stkCallback?.MerchantRequestID
         })
         console.log("LOGS", Logs)
-        console.log("BODY", req.body)
+        
         for (let i = 0; i < Logs.length; i++) {
 
             await MpesaLogs.findOneAndUpdate(
