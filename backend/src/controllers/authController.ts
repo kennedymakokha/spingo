@@ -41,8 +41,7 @@ export const register = async (req: Request, res: Response) => {
         req.body.activationCode = activationcode
         const user: any = new User(req.body);
         const newUser = await user.save();
-        let textbody = { subject: "affiliate Link", id: newUser._id, address: `${phone}`, Body: `Hi \nYour your activation Code for Marapesa is ${activationcode} ` }
-
+      
         await sendTextMessage(`Hi ${newUser.username} \nWelcome to Marapesa\nYour your activation Code is ${activationcode}`, `${phone}`, newUser._id)
         res.status(201).json({ message: "User registered successfully", newUser });
         return;
@@ -140,8 +139,10 @@ export const requestToken = async (req: Request, res: Response) => {
             res.status(400).json("user not found");
             return
         }
-        let textbody = { subject: "otp request", id: user?._id, address: `${phone}`, Body: `Hi \nYour referal link is http://localhost:3000?affiliate=${1245}  ` }
+        let textbody = { re: "otp request", id: user?._id, address: `${phone}`, Body: `Hi \nYour referal link is http://localhost:3000?affiliate=${1245}  ` }
         // await SendMessage(textbody)
+        // await sendTextMessage(`Hi ${newUser.username} \nWelcome to Marapesa\nYour your activation Code is ${activationcode}`, `${phone}`, user._id,"password-reset")
+      
         res.status(200).json(`Token sent to ***********${phone.slice(-3)}`);
         return;
     } catch (error) {

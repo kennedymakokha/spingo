@@ -11,13 +11,8 @@ import apiClient from "@/lib/apiClient";
 import { UserData } from "@/types/transactions";
 import ChatWindow from "@/components/chatwindow";
 import { Message } from "@/types/chat";
+import { menuItems } from './../data.json'
 
-
-const menuItems = [
-  { name: "Dashboard", icon: "m2.25 12 8.954-8.955...", path: "/" },
-  { name: "Analytics", icon: "M2.25 18 9 11.25...", path: "/analytics" },
-  { name: "Wallet", icon: "M21 12a2.25 2.25...", path: "/wallet" },
-];
 
 
 export default function Dashboard({ children }: { children: React.ReactNode }) {
@@ -138,7 +133,7 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
         transition={{ duration: 0.3 }}
       >
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-[#22b14c]">MaraPesa</h1>
+          <div className="pl-10 lg:pl-0"><span className="text-[#22b14c]">MARA</span><span className="text-[#ed1c24]">PESA</span></div>
           <button
             className="lg:hidden"
             onClick={() => setMobileMenuOpen(false)}
@@ -205,7 +200,7 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
         {mobileMenuOpen && (
           <div
             onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+            className="fixed inset-0 bg-black opacity-70 z-30 lg:hidden"
           />
         )}
         <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
