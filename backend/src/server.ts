@@ -1,8 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 
 import { createServer } from "http";
 import { Server } from "socket.io";
-import dotenv from "dotenv";
+
 import { setupSocket } from './config/socket'
 import { connectDB } from "./config/db";
 import walletRoutes from './routes/walletRoutes'
@@ -16,7 +18,7 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import { User } from "./models/user";
 import cors from 'cors'
-dotenv.config();
+// dotenv.config();
 const app = express();
 
 app.use(cors({ credentials: true, origin: ["http://localhost:3000", "https://marapesa.com", "https://spingofrontend.vercel.app", "https://api.marapesa.com"] }))
@@ -57,6 +59,6 @@ httpServer.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
-
+console.log("PORT:", process.env.PORT);
 
 setupSocket(io);

@@ -1,5 +1,6 @@
 'use client'
 import { fetchwallet } from '@/actions/authActions';
+import SuccessFailure from '@/components/successFailure';
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { CardContent } from '@/components/ui/cardComponent'
@@ -16,6 +17,8 @@ const page = () => {
 
   const [transactions, setTransactions] = useState<any>(null);
   const [error, setError] = useState<any>(null);
+  const [success, setSuccess] = useState<any>(null);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [item, setItem] = useState({
     amount: 0,
@@ -47,18 +50,20 @@ const page = () => {
   const submit = async () => {
     try {
       setLoading(true); // Start loading
-      let v = await apiClient().post(`wallet`, item)
+      await apiClient().post(`wallet`, item)
+
       await fetchData();
       setIsModalOpen(false)
-    } catch (error) {
-      setError("Error loading data");
+    } catch (error: any) {
+      setIsModalOpen(false)
+      setError(error?.response?.data);
     } finally {
       setLoading(false); // Stop loading
     }
   }
   return (
     <div className="min-h-screen min-w-[83vw] bg-[#1018289e]  rounded-md flex flex-col items-center p-6">
-
+      <SuccessFailure success={success} error={error} />
       <Card className="w-full max-w-md p-6 shadow-lg rounded-2xl bg-white">
         <CardContent>
           <div className="flex items-center justify-between mb-4">

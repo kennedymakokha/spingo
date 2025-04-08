@@ -19,43 +19,87 @@ export const Load_wallet = async (req: Request | any, res: Response | any) => {
             );
             let Logs: any = await MpesaLogs.findOne({ MerchantRequestID: response.MerchantRequestID })
 
-            while (Logs?.logs === "") {
-                await new Promise(resolve => setTimeout(resolve, 5000));
+            // Poll for Logs until logs are not empty or max retries reached
+            let retryCount = 0;
+            const maxRetries = 10;  // Maximum number of attempts
+            const retryInterval = 5000;  // 5 seconds between retries
+
+            // Wait for Logs to be updated
+            while (Logs?.log === '' && retryCount < maxRetries) {
+                retryCount++;
+                console.log(`Retry attempt ${retryCount}: Waiting for logs to be updated...`);
+
+                // Wait for 5 seconds before checking again
+                await new Promise(resolve => setTimeout(resolve, retryInterval));
+
+                // Fetch updated Logs
                 Logs = await MpesaLogs.findOne({ MerchantRequestID: response.MerchantRequestID });
             }
 
-            console.log("first", Logs?.logs)
+            if (Logs?.log !== '') {
+                console.log("Logs have been updated:", Logs);
+                // Proceed with the rest of the flow
+                if (Logs.ResponseCode !== 0) {
+                    res.status(400).json(`Failed To  sent money  ${Logs.ResultDesc}`)
+                    return
+                }
+                let walet = await Wallet.findOne({ user_id: req.user.userId })
+                let contribution = await new Contribution({ user_id: req.user.userId, amount: req.body.amount, type: req.body.type }).save()
+                let new_wallet_ammount = 0
+                if (walet) {
+                    new_wallet_ammount = parseInt(walet.total_amount) + parseInt(req.body.amount)
+                    const Update = await Wallet.findOneAndUpdate({ user_id: req.user.userId }, { total_amount: new_wallet_ammount }, { new: true, useFindAndModify: false })
 
+                    res
+                        .status(200)
+                        .json(Update);
 
-        }
-        let walet = await Wallet.findOne({ user_id: req.user.userId })
-        let contribution = await new Contribution({ user_id: req.user.userId, amount: req.body.amount, type: req.body.type }).save()
-        let new_wallet_ammount = 0
-        if (walet) {
-            if (type === "withdraw" || type === "stake-lost") {
-                new_wallet_ammount = parseInt(walet.total_amount) - parseInt(req.body.amount)
+                    return
+                } else {
+                    new_wallet_ammount = amount
+                    await new Wallet({ user_id: req.user.userId, total_amount: new_wallet_ammount, contibution_id: contribution._id }).save()
+                    res
+                        .status(200)
+                        .json({ message: "User Saved Successfully !!", contribution });
+                    return
+                }
+
             } else {
-                new_wallet_ammount = parseInt(walet.total_amount) + parseInt(req.body.amount)
+                // If max retries reached and logs are still empty, handle accordingly
+                console.error("Failed to get valid logs after max retries.");
+                res.status(500).json({ error: "Failed to process payment. Try again later." });
             }
-            const Update = await Wallet.findOneAndUpdate({ user_id: req.user.userId }, { total_amount: new_wallet_ammount }, { new: true, useFindAndModify: false })
-            io?.emit('update-cash')
-            res
-                .status(200)
-                .json(Update);
-
-
-            // io?.to(`${req.uid}`).emit("unread-notifications", count);
-
-            return
         } else {
-            new_wallet_ammount = amount
-            await new Wallet({ user_id: req.user.userId, total_amount: new_wallet_ammount, contibution_id: contribution._id }).save()
-            io?.emit('update-cash')
-            res
-                .status(200)
-                .json({ message: "User Saved Successfully !!", contribution });
-            return
+            let walet = await Wallet.findOne({ user_id: req.user.userId })
+            let contribution = await new Contribution({ user_id: req.user.userId, amount: req.body.amount, type: req.body.type }).save()
+            let new_wallet_ammount = 0
+            if (walet) {
+                if (type === "withdraw" || type === "stake-lost") {
+                    new_wallet_ammount = parseInt(walet.total_amount) - parseInt(req.body.amount)
+                } else {
+                    new_wallet_ammount = parseInt(walet.total_amount) + parseInt(req.body.amount)
+                }
+                const Update = await Wallet.findOneAndUpdate({ user_id: req.user.userId }, { total_amount: new_wallet_ammount }, { new: true, useFindAndModify: false })
+                io?.emit('update-cash')
+                res
+                    .status(200)
+                    .json(Update);
+
+
+                // io?.to(`${req.uid}`).emit("unread-notifications", count);
+
+                return
+            } else {
+                new_wallet_ammount = amount
+                await new Wallet({ user_id: req.user.userId, total_amount: new_wallet_ammount, contibution_id: contribution._id }).save()
+                io?.emit('update-cash')
+                res
+                    .status(200)
+                    .json({ message: "User Saved Successfully !!", contribution });
+                return
+            }
         }
+
     } catch (error) {
         console.log(error);
         res
