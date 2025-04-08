@@ -4,6 +4,7 @@ import Wallet from '../models/wallet'
 import { Request, Response } from "express";
 import Mpesa_stk from "../utils/stk.helper";
 import { getSocketIo } from "../config/socket";
+import MpesaLogs from "../models/mpesa_logs";
 let io = getSocketIo()
 export const Load_wallet = async (req: Request | any, res: Response | any) => {
     try {
@@ -11,11 +12,19 @@ export const Load_wallet = async (req: Request | any, res: Response | any) => {
         let AuthUser: any = await User.findOne({ _id: req.user.userId })
         let phone = AuthUser.phone_number
         if (type === "deposit") {
-            await Mpesa_stk(
+            let response = await Mpesa_stk(
                 phone,
                 req.body.amount,
                 req?.user?._id,
             );
+            let Logs: any = await MpesaLogs.findOne({ MerchantRequestID: response.MerchantRequestID })
+           
+            while (Logs?.logs === "") {
+                await new Promise(resolve => setTimeout(resolve, 5000)); 
+                Logs = await MpesaLogs.findOne({ MerchantRequestID: response.MerchantRequestID });
+            }
+          
+
         }
         let walet = await Wallet.findOne({ user_id: req.user.userId })
         let contribution = await new Contribution({ user_id: req.user.userId, amount: req.body.amount, type: req.body.type }).save()
@@ -105,4 +114,60 @@ export const get_contributions = async (req: Request | any, res: Response | any)
         return
     }
 }
+
+
+
+export const mpesa_callback = async (req: Request | any, res: Response | any) => {
+    try {
+        const Logs = await MpesaLogs.find({
+            MerchantRequestID: req.body.Body?.stkCallback?.MerchantRequestID
+        })
+        for (let i = 0; i < Logs.length; i++) {
+
+            await MpesaLogs.findOneAndUpdate(
+                {
+                    _id: Logs[i]._id
+                }, {
+                log: JSON.stringify(req.body), ResultDesc: req.body.Body?.stkCallback?.ResultDesc,
+                ResponseCode: req.body.Body?.stkCallback?.ResultCode,
+                MpesaReceiptNumber: req.body.Body?.stkCallback?.CallbackMetadata?.Item[1]?.Value
+            }, { new: true, useFindAndModify: false })
+
+            if (req.body.Body?.stkCallback?.ResultCode === 0) {
+
+
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        res
+            .status(400)
+            .json({ success: false, message: "operation failed ", error });
+        return
+    }
+}
+// router.post('/CallbackUrl', async (req, res, next) => {
+// export const get_contributions = async (req: Request | any, res: Response | any) => {
+//     try {
+//         const Logs = await MpesaLogs.find({
+//             MerchantRequestID: req.body.Body?.stkCallback?.MerchantRequestID
+//         })
+//         for (let i = 0; i < Logs.length; i++) {
+
+//             await MpesaLogs.findOneAndUpdate(
+//                 {
+//                     _id: Logs[i]._id
+//                 }, {
+//                 log: JSON.stringify(req.body), ResultDesc: req.body.Body?.stkCallback?.ResultDesc,
+//                 ResponseCode: req.body.Body?.stkCallback?.ResultCode,
+//                 MpesaReceiptNumber: req.body.Body?.stkCallback?.CallbackMetadata?.Item[1]?.Value
+//             }, { new: true, useFindAndModify: false })
+
+//             if (req.body.Body?.stkCallback?.ResultCode === 0) {
+
+//
+//         }
+//     }
+// }
+
 
