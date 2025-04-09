@@ -72,7 +72,7 @@ export const loginAdmin = async (form: any) => {
         };
         const result = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/admin-login`, requestOptions)
         const responseData = await result.json()
-      
+
         if (result.status === 200) {
             return parseServerActionResponse({ ...result, error: "", status: 200, success: true, message: responseData })
         }
@@ -195,10 +195,9 @@ export const verifyOtp = async (form: any): Promise<any> => {
             body: JSON.stringify(user) // Send the data in JSON format
         };
 
-        const response: any = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/`, requestOptions)
+        const response: any = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth//verify-otp`, requestOptions)
         const responseData = await response.json();
-        // console.log(response)
-        console.log(responseData)
+
         if (response.status === 200) {
             console.log(responseData)
             return parseServerActionResponse({ ...response, error: "", status: 200, success: true, message: responseData })
@@ -248,9 +247,9 @@ export const activateUser = async (form: any): Promise<any> => {
 };
 
 // Function to reset the password
-export const resetPassword = async (phoneNumber: string, newPassword: string): Promise<any> => {
+export const resetPassword = async (phoneNumber: string | any, newPassword: string): Promise<any> => {
     try {
-        const response = await axios.post<any>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/reset-password`, { phoneNumber, newPassword });
+        const response = await axios.post<any>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/reset-password`, { phone_number: phoneNumber, newPassword });
         if (response.status === 200 && response.data.success) {
             // Optionally, set a cookie or do any further processing, like logging in the user.
             if (response.data.token) {

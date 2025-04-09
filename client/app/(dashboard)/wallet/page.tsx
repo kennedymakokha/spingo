@@ -62,7 +62,7 @@ const page = () => {
     }
   }
   return (
-    <div className="min-h-screen min-w-[83vw] bg-[#1018289e]  rounded-md flex flex-col items-center p-6">
+    <div className="min-h-screen min-w-[83vw]   rounded-md flex flex-col items-center p-6">
       <SuccessFailure success={success} error={error} />
       <Card className="w-full max-w-md p-6 shadow-lg rounded-2xl bg-white">
         <CardContent>

@@ -92,19 +92,9 @@ const page = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900  p-8">
+    <div className="min-h-screen  p-8">
       {/* Page Header */}
-      <header className="text-center mb-12">
-        <motion.h1
-          className="text-4xl font-bold text-blue-600"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-        >
-          Analytics Dashboard
-        </motion.h1>
-      </header>
-
+     
       {/* Main Analytics Cards */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

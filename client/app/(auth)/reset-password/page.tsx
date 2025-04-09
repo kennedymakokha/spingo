@@ -4,21 +4,24 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Input from "@/components/ui/input";
-// import { requestOtp, verifyOtp, resetPassword } from "@/actions/authActions";  // Assuming these actions are available
 import SuccessFailure from "@/components/successFailure";
-import { setCookie } from "cookies-next";
 import { requestOtp, resetPassword, verifyOtp } from "@/actions/authActions";
+import { socket } from "@/components/socket";
 
 const ResetPasswordScreen = () => {
-    const [step, setStep] = useState(1);  // Track which step we are in (1: request OTP, 2: verify OTP, 3: reset password)
+    let Number = localStorage.getItem('phone');
+    const [step, setStep] = useState(Number ? 2 : 1);
     const [phoneNumber, setPhoneNumber] = useState("");
     const [otp, setOtp] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-
+    const [timer, setTimer] = useState(0);
     const router = useRouter();
+
+    const PRIMARY_COLOR = "#22b14c";
+    const SECONDARY_COLOR = "#ed1c24";
 
     const handleRequestOtp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,10 +34,10 @@ const ResetPasswordScreen = () => {
 
         try {
             const response: any = await requestOtp(phoneNumber);
-            console.log(response)
             if (response.success) {
-                setSuccess(`OTP sent successfully! Check your  ***********${phoneNumber.slice(-3)}`);
-                setStep(2);  // Move to the next step (OTP verification)
+                setSuccess(`OTP sent successfully! Check your ***********${phoneNumber.slice(-3)}`);
+                localStorage.setItem("phone", phoneNumber);
+                setStep(2);
             } else {
                 setError(response.message || "Failed to send OTP.");
             }
@@ -53,10 +56,10 @@ const ResetPasswordScreen = () => {
         }
 
         try {
-            const response = await verifyOtp({phoneNumber, otp});
+            const response = await verifyOtp({ phone_number: Number, otp });
             if (response.success) {
                 setSuccess("OTP verified! Please set a new password.");
-                setStep(3);  // Move to the next step (reset password)
+                setStep(3);
             } else {
                 setError(response.message || "Invalid OTP.");
             }
@@ -80,9 +83,10 @@ const ResetPasswordScreen = () => {
         }
 
         try {
-            const response = await resetPassword(phoneNumber, newPassword);
+            const response = await resetPassword(Number, newPassword);
             if (response.success) {
                 setSuccess("Password reset successfully! You can now login.");
+                localStorage.removeItem("phone");
                 setTimeout(() => {
                     router.push("/login");
                 }, 2000);
@@ -93,6 +97,29 @@ const ResetPasswordScreen = () => {
             setError("An error occurred. Please try again.");
         }
     };
+
+    const startTimer = (time: any) => {
+        socket.emit("restartBrowser", time);
+        socket.on("browsertimerUpdate", (dur) => {
+            setTimer(dur);
+        });
+    };
+
+    useEffect(() => {
+        startTimer(10);
+    }, []);
+
+    const Button = ({ children, type = "submit" }: { children: React.ReactNode; type?: "button" | "submit" }) => (
+        <motion.div whileHover={{ scale: 1.05 }}>
+            <button
+                type={type}
+                style={{ backgroundColor: PRIMARY_COLOR }}
+                className="w-full flex items-center justify-center text-white font-semibold py-2 rounded-lg shadow-md"
+            >
+                {children}
+            </button>
+        </motion.div>
+    );
 
     return (
         <AnimatePresence mode="wait">
@@ -115,11 +142,7 @@ const ResetPasswordScreen = () => {
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value)}
                         />
-                        <motion.div whileHover={{ scale: 1.05 }}>
-                            <button type="submit" className="w-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 text-white font-semibold py-2 rounded-lg shadow-md shadow-blue-400">
-                                Request OTP
-                            </button>
-                        </motion.div>
+                        <Button>Request OTP</Button>
                     </form>
                 )}
 
@@ -131,11 +154,7 @@ const ResetPasswordScreen = () => {
                             value={otp}
                             onChange={(e) => setOtp(e.target.value)}
                         />
-                        <motion.div whileHover={{ scale: 1.05 }}>
-                            <button type="submit" className="w-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 text-white font-semibold py-2 rounded-lg shadow-md shadow-blue-400">
-                                Verify OTP
-                            </button>
-                        </motion.div>
+                        <Button>Verify OTP</Button>
                     </form>
                 )}
 
@@ -153,11 +172,7 @@ const ResetPasswordScreen = () => {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                         />
-                        <motion.div whileHover={{ scale: 1.05 }}>
-                            <button type="submit" className="w-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 text-white font-semibold py-2 rounded-lg shadow-md shadow-blue-400">
-                                Reset Password
-                            </button>
-                        </motion.div>
+                        <Button>Reset Password</Button>
                     </form>
                 )}
 
@@ -165,11 +180,21 @@ const ResetPasswordScreen = () => {
                     Remember your password?
                     <button
                         onClick={() => router.push("/login")}
-                        className="text-blue-500 hover:underline ml-1"
+                        className="text-[--primary] hover:underline ml-1"
+                        style={{ color: PRIMARY_COLOR }}
                     >
                         Login
                     </button>
                 </p>
+
+                {Number && step === 2 && (
+                    <button
+                        className={`text-slate-500 ${timer === 1 ? "bg-slate-200 px-4 py-2 rounded-md font-bold" : ""} shadow-2xl cursor-pointer ml-1`}
+                        style={{ color: timer === 1 ? PRIMARY_COLOR : SECONDARY_COLOR }}
+                    >
+                        {timer !== 1 ? `Resent code in ${timer}` : "Resend"}
+                    </button>
+                )}
             </motion.div>
         </AnimatePresence>
     );
