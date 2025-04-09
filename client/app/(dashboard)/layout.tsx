@@ -213,8 +213,6 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
               </svg>
 
             </div>
-
-            {/* User List or Chat View */}
             {!selectedUser ? (
               <div className="flex-1 overflow-y-auto relative z-20">
                 <div className="p-4">
