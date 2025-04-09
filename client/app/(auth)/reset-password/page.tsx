@@ -7,9 +7,10 @@ import Input from "@/components/ui/input";
 import SuccessFailure from "@/components/successFailure";
 import { requestOtp, resetPassword, verifyOtp } from "@/actions/authActions";
 import { socket } from "@/components/socket";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 
 const ResetPasswordScreen = () => {
-    let Number = localStorage.getItem('phone');
+    let Number = getCookie('phone');
     const [step, setStep] = useState(Number ? 2 : 1);
     const [phoneNumber, setPhoneNumber] = useState("");
     const [otp, setOtp] = useState("");
@@ -36,7 +37,9 @@ const ResetPasswordScreen = () => {
             const response: any = await requestOtp(phoneNumber);
             if (response.success) {
                 setSuccess(`OTP sent successfully! Check your ***********${phoneNumber.slice(-3)}`);
-                localStorage.setItem("phone", phoneNumber);
+                // localStorage.setItem("phone", phoneNumber);
+                setCookie("phone", phoneNumber)
+                // import { setCookie } from 'cookies-next';
                 setStep(2);
             } else {
                 setError(response.message || "Failed to send OTP.");
@@ -86,7 +89,7 @@ const ResetPasswordScreen = () => {
             const response = await resetPassword(Number, newPassword);
             if (response.success) {
                 setSuccess("Password reset successfully! You can now login.");
-                localStorage.removeItem("phone");
+                deleteCookie("phone")
                 setTimeout(() => {
                     router.push("/login");
                 }, 2000);

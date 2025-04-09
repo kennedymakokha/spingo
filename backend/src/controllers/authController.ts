@@ -147,7 +147,7 @@ export const requestToken = async (req: Request, res: Response) => {
         user.activationCode = activationcode
         await user.save();
         await sendTextMessage(
-            `Hi ${user.username} \nSorry for the inconvinience\nYour your Marapesa password-reset Code is ${activationcode}`,
+            `Hi ${user.username} \nSorry for the inconvinience\nYour Marapesa password-reset Code is ${activationcode}`,
             `${phone}`,
             user._id,
             "password-reset"
