@@ -113,7 +113,57 @@ export const Mpesa_stk = async (
 
 export default Mpesa_stk;
 
+const getAccessToken = async (): Promise<string> => {
+    const auth = Buffer.from(
+        `${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`
+    ).toString("base64");
 
+    const response = await axios.get(
+        `${process.env.MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials`,
+        {
+            headers: {
+                Authorization: `Basic ${auth}`,
+            },
+        }
+    );
+
+    return response.data.access_token;
+};
+export const sendB2C = async (req: Request | any, res: Response | any ) => {
+    try {
+        const token = await getAccessToken();
+
+        const payload = {
+            InitiatorName: process.env.MPESA_INITIATOR_NAME,
+            SecurityCredential: process.env.MPESA_SECURITY_CREDENTIAL,
+            CommandID: "BusinessPayment", // can also be "SalaryPayment", "PromotionPayment"
+            Amount: req.body.amount,
+            PartyA: process.env.MPESA_SHORTCODE,
+            PartyB: req.body.phone, // 2547XXXXXXXX
+            Remarks: "Payment from Mtadao",
+            QueueTimeOutURL: process.env.MPESA_B2C_CALLBACK,
+            ResultURL: process.env.MPESA_B2C_CALLBACK,
+            Occasion: "Payout",
+        };
+
+        const response = await axios.post(
+            `${process.env.MPESA_BASE_URL}/mpesa/b2c/v1/paymentrequest`,
+            payload,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        console.log("B2C Response:", response.data);
+        res.json(response.data);
+    } catch (error: any) {
+        console.error("B2C Error:", error?.response?.data || error.message);
+        res.status(500).json({ error: "B2C payment failed" });
+    }
+};
 // import fetch, { Headers } from "node-fetch";
 // import axios from "axios";
 // import moment from "moment";

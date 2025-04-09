@@ -9,10 +9,10 @@ import { sendTextMessage } from "../utils/sms_sender";
 
 export const sendSms = async (req: Request | any, res: Response | any) => {
 
-    const { message, phone, reciever, } = req.body;
+    const { message, phone, reciever, ref } = req.body;
     try {
-        let response = await sendTextMessage(message, phone, reciever)
-      
+        let response = await sendTextMessage(message, phone, reciever, ref)
+
         if (response.success) {
             res.status(200).json(response.data);
             return

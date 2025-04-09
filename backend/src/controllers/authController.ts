@@ -41,8 +41,13 @@ export const register = async (req: Request, res: Response) => {
         req.body.activationCode = activationcode
         const user: any = new User(req.body);
         const newUser = await user.save();
-      
-        await sendTextMessage(`Hi ${newUser.username} \nWelcome to Marapesa\nYour your activation Code is ${activationcode}`, `${phone}`, newUser._id)
+
+        await sendTextMessage(
+            `Hi ${newUser.username} \nWelcome to Marapesa\nYour your activation Code is ${activationcode}`,
+            `${phone}`,
+            newUser._id,
+            "account-activation"
+        )
         res.status(201).json({ message: "User registered successfully", newUser });
         return;
 
@@ -57,17 +62,15 @@ export const register = async (req: Request, res: Response) => {
 export const updatePassword = async (req: Request, res: Response) => {
     try {
         const { newPassword, phone_number } = req.body
-        const salt = await bcrypt.genSalt(10);  // Generate a salt
         let phone = await Format_phone_number(phone_number);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);  // Hash the new password
         const user: any = await User.findOne({ phone_number: phone });  // Find the user by ID
         if (!user) {
             res.status(400).json("user not found");
             return
-        }
-        user.password = hashedPassword;  // Set the new hashed password
-        await user.save();  // Save the user with the updated password
-        res.status(200).json({ message: "Password updated successfully" });
+        } 
+        user.password = newPassword
+        await user.save();
+        res.status(200).json({ success: true, message: "Password updated successfully" });
         return;
     } catch (error) {
         console.log(error)
@@ -85,6 +88,7 @@ export const activateuser = async (req: Request, res: Response) => {
             res.status(400).json("user not found");
             return
         }
+
         if (user.activationCode === code) {
             user.activationCode = ""
             user.activated = true
@@ -124,7 +128,7 @@ export const verifyuser = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.log(error)
-        res.status(500).json({ message: "Server error", error });
+        res.status(500).json("Server error try again");
         return;
 
     }
@@ -139,10 +143,15 @@ export const requestToken = async (req: Request, res: Response) => {
             res.status(400).json("user not found");
             return
         }
-        let textbody = { re: "otp request", id: user?._id, address: `${phone}`, Body: `Hi \nYour referal link is http://localhost:3000?affiliate=${1245}  ` }
-        // await SendMessage(textbody)
-        // await sendTextMessage(`Hi ${newUser.username} \nWelcome to Marapesa\nYour your activation Code is ${activationcode}`, `${phone}`, user._id,"password-reset")
-      
+        let activationcode = MakeActivationCode(4)
+        user.activationCode = activationcode
+        await user.save();
+        await sendTextMessage(
+            `Hi ${user.username} \nSorry for the inconvinience\nYour your Marapesa password-reset Code is ${activationcode}`,
+            `${phone}`,
+            user._id,
+            "password-reset"
+        )
         res.status(200).json(`Token sent to ***********${phone.slice(-3)}`);
         return;
     } catch (error) {
