@@ -88,7 +88,7 @@ export const activateuser = async (req: Request, res: Response) => {
             res.status(400).json("user not found");
             return
         }
-
+console.log("User",user,code)
         if (user.activationCode === code) {
             user.activationCode = ""
             user.activated = true
