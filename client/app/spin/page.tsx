@@ -10,6 +10,8 @@ import { socket } from "@/components/socket";
 import TypewriterEffect from "@/components/typewriter";
 import apiClient from "@/lib/apiClient";
 import { BetData, WalletData } from "@/types/transactions";
+import { useRouter } from "next/router";
+import Link from "next/link";
 
 function getRandomColor() {
     const colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"];
@@ -23,13 +25,16 @@ export default function page() {
     const [stake, setStake] = useState<number>(10);
     const [spin_id, setSpin_id] = useState<any>("");
     const [balance, setBalance] = useState<number>(0);
-    const [timer, setTimer] = useState<number | null>(10);
+    const [timer, setTimer] = useState<number | null>();
     const [restartTime, setRestartTime] = useState<number>(0);
     const [canPlay, setCanPlay] = useState(false);
+    const [stacked, setStacked] = useState(false);
     const [data, setData] = useState<any>(null);
     const [user, setUser] = useState<any>(null);
+    // const router = useRouter();
+
     const post_bet = async (result: any) => {
-        console.log(result)
+
         try {
             await apiClient().post<BetData[]>(`predictions`, {
                 stake: stake,
@@ -43,12 +48,13 @@ export default function page() {
         }
     };
     const handleFlip = async () => {
-        if (!prediction || stake <= 0 || stake > balance || !canPlay) return;
-        setIsFlipping(true);
-        setIsCorrect(null);
-        socket.emit("flipCoin", { prediction });
+        setStacked(true)
+        // if (!prediction || stake <= 0 || stake > balance || !canPlay) return;
+        // setIsFlipping(true);
+        // setIsCorrect(null);
+        // socket.emit("flipCoin", { prediction });
 
-        // setIsFlipping(false)
+        // // setIsFlipping(false)
     };
     const fetchData = async () => {
         try {
@@ -64,65 +70,92 @@ export default function page() {
     useEffect(() => {
         fetchData();
     }, [balance]);
+    const clear = () => {
+        setIsFlipping(false)
+        // setResult(null)
+        // setPrediction(null)
+        // setIsCorrect(null);
+    }
+
     useEffect(() => {
-        socket.emit("startGame", 20);
+        socket.on("flipCoin", result => {
+            console.log(result, "result is as ablove");
+            setResult(result);
+            //         setSpin_id(flipResult.spin_id)
+            const correct = result === prediction;
+            setIsCorrect(correct);
+        });
+    }, []);
+    useEffect(() => {
+        // socket.emit("startGame", 20);
         socket.on("timerUpdate", (dur) => {
             setTimer(dur)
+            if (dur === 0) {
+                setIsFlipping(true)
+
+                setTimeout(() => clear(), 10000)
+            }
 
         })
-        socket.on("enablePlay", (dur) => {
-            setCanPlay(true)
 
-        })
 
     }, [])
-    useEffect(() => {
+    console.log(isCorrect, "")
+    // useEffect(() => {
 
-        if (timer === 1) {
+    //     if (timer === 1) {
 
-            setIsFlipping(true);
-            setIsCorrect(null);
-            socket.emit("flipCoin", { prediction });
-        }
-    }, [timer])
-    useEffect(() => {
+    //         setIsFlipping(true);
+    //         setStacked(false)
+    //         setIsCorrect(null);
+    //         //socket.emit("flipCoin", { prediction });
+    //     }
+    // }, [timer])
+    // useEffect(() => {
 
-        socket.on("flipResult", (flipResult: any) => {
-            setResult(flipResult.flipResult);
-            setSpin_id(flipResult.spin_id)
-            const correct = flipResult === prediction;
-            setIsCorrect(correct);
-            setBalance(correct ? balance + stake : balance - stake);
-            setTimeout(() => setIsFlipping(false), 5000)
-        });
-        // socket.on("spin_id",spin)
-    }, [balance, prediction])
-    useEffect(() => {
-        if (result && prediction) {
-            post_bet(result)
-            fetchData()
-        }
-        if (!isFlipping && result) {
-            socket.emit("restartBrowser", 10);
-            socket.on("browsertimerUpdate", (dur) => {
+    //     socket.on("flipResult", (flipResult: any) => {
+    //         setResult(flipResult.flipResult);
+    //         setSpin_id(flipResult.spin_id)
+    //         const correct = flipResult === prediction;
+    //         setIsCorrect(correct);
+    //         setBalance(correct ? balance + stake : balance - stake);
+    //         setTimeout(() => setIsFlipping(false), 5000)
+    //     });
+    //     // socket.on("spin_id",spin)
+    // }, [balance, prediction])
 
-                setRestartTime(dur)
-                if (dur === 1) {
-                    window.location.reload()
-                }
 
-            })
-        }
 
-    }, [result, isFlipping])
 
+    // useEffect(() => {
+    //     if (result && prediction) {
+    //         post_bet(result)
+    //         fetchData()
+    //     }
+    //     if (!isFlipping && result) {
+    //         socket.emit("restartBrowser", 10);
+    //         socket.on("browsertimerUpdate", (dur) => {
+    //             setRestartTime(dur)
+    //             if (dur === 1) {
+    //                 window.location.reload()
+    //             }
+    //         })
+    //     }
+
+    // }, [result, isFlipping])
+    console.log(isCorrect, isFlipping)
     return (
-
-
         <div className="flex relative z-0 flex-col items-center justify-center h-screen bg-gray-900  text-white">
-
             <Image src={bgImage} alt="result" className="w-full h-full object-cover" width={1200} height={1200} />
-            <div className="absolute inset-x-0 capitalize bottom-6 h-10  flex justify-center items-center z-12">
+            <div className="absolute top-4 left-4 z-20">
+                <Link href='/'
+                    // onClick={() => router.back()}
+                    className="px-4 py-2 flex items-center justify-center bg-green-500 text-white rounded-md shadow hover:bg-gray-700 transition"
+                >
+                    Home
+                </Link>
+            </div>
+            <div className="absolute inset-x-0 capitalize bottom-6 h-10   flex justify-center items-center z-12">
                 <div style={{ fontFamily: 'Courier New', fontSize: '24px', color: 'white' }}>
                     {restartTime > 2 && `Game restarts in ${restartTime} seconds `}
                 </div>
@@ -130,7 +163,7 @@ export default function page() {
             <div className="absolute right-[10%] top-2 h-10  flex justify-center items-center z-12">
                 <p style={{ textShadow: `0px 0px 19px  ${isCorrect === null ? "white" : isCorrect === true ? "green" : "red"}` }} className={`text-lg  font-semibold mb-4  ${isCorrect === null && !isFlipping ? "text-white" : isCorrect === true && !isFlipping && result ? "text-green-200" : "text-red-500"}`}>Balance: Ksh {balance}</p>
             </div>
-            <div className="absolute inset-0 flex justify-center items-center z-12">
+            <div className="absolute inset-0 flex justify-center    items-center z-12">
 
                 <div style={{ boxShadow: result && !isFlipping && !isCorrect && prediction !== null ? "0px 0px 800px red" : "0px 0px 10px #00f2ff" }} className={`flex bg-gray-900   ${result && !isFlipping && !isCorrect && prediction !== null ? "border border-[red]" : "border-[#00f2ff]"} items-center justify-center flex-col p-5 rounded-md`}>
                     {/* <h1 className="text-3xl font-bold mb-6 text-cyan-400">Coin Flip</h1> */}
@@ -163,20 +196,20 @@ export default function page() {
                         </div>
                         <div className="mt-4 flex space-x-4">
                             <button
-                                className={`px-4 py-2 min-w-20 rounded-lg font-bold ${prediction === "heads" ? "bg-cyan-500 text-black" : "bg-gray-700 text-white hover:bg-gray-600"
+                                className={`px-4 py-2 min-w-20 rounded-lg font-bold ${prediction === "heads" ? "bg-green-500 text-black" : "bg-gray-700 text-white hover:bg-gray-600"
                                     }`}
                                 onClick={() => {
                                     setPrediction("heads");
-                                    socket.emit("postPredict", { uuid: user?._id, bet: "heads" })
+                                    socket.emit("place-bet", { uuid: user?._id, bet: "heads" })
                                 }}
                                 disabled={canPlay}
                             >
                                 Head
                             </button>
                             <button
-                                className={`px-4 min-w-20 py-2 rounded-lg font-bold ${prediction === "tails" ? "bg-cyan-500 text-black" : "bg-gray-700 text-white hover:bg-gray-600"
+                                className={`px-4 min-w-20 py-2 rounded-lg font-bold ${prediction === "tails" ? "bg-green-500 text-black" : "bg-gray-700 text-white hover:bg-gray-600"
                                     }`}
-                                onClick={() => { setPrediction("tails"), socket.emit("postPredict", ({ uuid: user?._id, bet: "tails" })) }}
+                                onClick={() => { setPrediction("tails"), socket.emit("place-bet", ({ uuid: user?._id, bet: "tails" })) }}
                                 disabled={canPlay}
                             >
                                 Tail
@@ -186,11 +219,11 @@ export default function page() {
 
 
                         {stake && <button
-                            className="mt-6 px-6 py-3 bg-cyan-500 text-black font-bold rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition duration-300"
+                            className="mt-6 px-6 py-3 bg-green-500 text-black font-bold rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition duration-300"
                             onClick={handleFlip}
                             disabled={isFlipping || !prediction || stake > balance}
                         >
-                            {isFlipping ? "Flipping..." : `Stake ${stake}`}
+                            {stacked ? "You have staked ${10}" : isFlipping ? "Flipping..." : `Stake ${stake}`}
                         </button>}
 
                         {
@@ -234,9 +267,6 @@ export default function page() {
                 </div>
             </div>}
             <div className="absolute inset-0 flex justify-center bg-black opacity-80 items-center z-10"></div>
-
-
-
         </div >
     );
 }

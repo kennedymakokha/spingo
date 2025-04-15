@@ -38,8 +38,8 @@ export const fetchData = async ({ setUser }: any) => {
 
 
 export const Colors = {
-  green: '#22b14c',
-  red: '#ed1c24',
+  PRIMARY_COLOR: "#22b14c",
+  SECONDARY_COLOR: "#ed1c24"
 }
 
 export function parseServerActionResponse<T>(response: T) {

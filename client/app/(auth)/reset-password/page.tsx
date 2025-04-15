@@ -8,6 +8,9 @@ import SuccessFailure from "@/components/successFailure";
 import { requestOtp, resetPassword, verifyOtp } from "@/actions/authActions";
 import { socket } from "@/components/socket";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
+import { Colors } from "@/lib/utils";
+
+const { PRIMARY_COLOR, SECONDARY_COLOR } = Colors
 
 const ResetPasswordScreen = () => {
     let Number = getCookie('phone');
@@ -18,11 +21,11 @@ const ResetPasswordScreen = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState(0);
     const router = useRouter();
 
-    const PRIMARY_COLOR = "#22b14c";
-    const SECONDARY_COLOR = "#ed1c24";
+
 
     const handleRequestOtp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,17 +37,19 @@ const ResetPasswordScreen = () => {
         }
 
         try {
+            setLoading(true)
             const response: any = await requestOtp(phoneNumber);
             if (response.success) {
                 setSuccess(`OTP sent successfully! Check your ***********${phoneNumber.slice(-3)}`);
-                // localStorage.setItem("phone", phoneNumber);
                 setCookie("phone", phoneNumber)
-                // import { setCookie } from 'cookies-next';
+                setLoading(false)
                 setStep(2);
             } else {
+                setLoading(false)
                 setError(response.message || "Failed to send OTP.");
             }
         } catch (err) {
+            setLoading(false)
             setError("An error occurred. Please try again.");
         }
     };
@@ -59,14 +64,18 @@ const ResetPasswordScreen = () => {
         }
 
         try {
+            setLoading(true)
             const response = await verifyOtp({ phone_number: Number, otp });
             if (response.success) {
                 setSuccess("OTP verified! Please set a new password.");
+                setLoading(false)
                 setStep(3);
             } else {
+                setLoading(false)
                 setError(response.message || "Invalid OTP.");
             }
         } catch (err) {
+            setLoading(false)
             setError("An error occurred. Please try again.");
         }
     };
@@ -116,10 +125,10 @@ const ResetPasswordScreen = () => {
         <motion.div whileHover={{ scale: 1.05 }}>
             <button
                 type={type}
-                style={{ backgroundColor: PRIMARY_COLOR }}
-                className="w-full flex items-center justify-center text-white font-semibold py-2 rounded-lg shadow-md"
+                style={{ backgroundColor: loading ? "gray" : PRIMARY_COLOR }}
+                className={`w-full flex items-center justify-center text-white font-semibold py-2 rounded-lg shadow-md`}
             >
-                {children}
+                {loading ? "Loading" : children}
             </button>
         </motion.div>
     );
