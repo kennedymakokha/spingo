@@ -209,7 +209,7 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
             <div className="flex justify-between items-center bg-[#22b14c] text-black font-bold px-4 py-2 rounded-t-xl">
               <span>Chat</span>
               <svg xmlns="http://www.w3.org/2000/svg" onClick={() => setIsChatOpen(false)} fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
 
             </div>

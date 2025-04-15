@@ -30,3 +30,9 @@ export interface ISms extends Document {
     timestamp: Date;
     // type: "user" | "system"; // Type of message (user/system)
 }
+
+export type Predictor = {
+    socketId: string;
+    bet: any;
+    userId: string;
+  };

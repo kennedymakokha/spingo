@@ -1,60 +1,67 @@
-
-import { Request, Response } from "express";
-import { Predict } from "../models/prections";
-import Wallet from "../models/wallet";
-import Contribution from "../models/contributions";
-
-
-export const place_bet = async (req: Request | any, res: Response | any) => {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.get_all_bets = exports.get_bets = exports.place_bet = void 0;
+const prections_1 = require("../models/prections");
+const wallet_1 = __importDefault(require("../models/wallet"));
+const contributions_1 = __importDefault(require("../models/contributions"));
+const place_bet = async (req, res) => {
     try {
-        req.body.user_id = req.user.userId
-        let walet = await Wallet.findOne({ user_id: req.user.userId })
-        req.body.state = req.body.outcome === req.body.prediction
+        req.body.user_id = req.user.userId;
+        let walet = await wallet_1.default.findOne({ user_id: req.user.userId });
+        req.body.state = req.body.outcome === req.body.prediction;
         // if(walet.)
-        let new_wallet_ammount
-        let type
+        let new_wallet_ammount;
+        let type;
         if (!req.body.state) {
-            type = "stake-lost"
-            new_wallet_ammount = parseInt(walet.total_amount) - parseInt(req.body.stake)
-        } else {
-            type = "stake-won"
-            new_wallet_ammount = parseInt(walet.total_amount) + parseInt(req.body.stake)
+            type = "stake-lost";
+            new_wallet_ammount = parseInt(walet.total_amount) - parseInt(req.body.stake);
         }
-        await Wallet.findOneAndUpdate({ user_id: req.user.userId }, { total_amount: new_wallet_ammount }, { new: true, useFindAndModify: false })
-        await new Contribution({ user_id: req.user.userId, amount: req.body.stake, type }).save()
-        let prections = await new Predict(req.body).save()
+        else {
+            type = "stake-won";
+            new_wallet_ammount = parseInt(walet.total_amount) + parseInt(req.body.stake);
+        }
+        await wallet_1.default.findOneAndUpdate({ user_id: req.user.userId }, { total_amount: new_wallet_ammount }, { new: true, useFindAndModify: false });
+        await new contributions_1.default({ user_id: req.user.userId, amount: req.body.stake, type }).save();
+        let prections = await new prections_1.Predict(req.body).save();
         res
             .status(200)
             .json(prections);
-        return
-    } catch (error) {
+        return;
+    }
+    catch (error) {
         console.log(error);
         res
             .status(400)
             .json({ success: false, message: "operation failed ", error });
-        return
+        return;
     }
-}
-export const get_bets = async (req: Request | any, res: Response | any) => {
+};
+exports.place_bet = place_bet;
+const get_bets = async (req, res) => {
     try {
-        let prections = await Predict.find({ user_id: req.user.userId })
+        let prections = await prections_1.Predict.find({ user_id: req.user.userId });
         res
             .status(200)
             .json(prections);
-        return
-    } catch (error) {
+        return;
+    }
+    catch (error) {
         console.log(error);
         res
             .status(400)
             .json({ success: false, message: "operation failed ", error });
-        return
+        return;
     }
-}
-export const get_all_bets = async (req: Request | any, res: Response | any) => {
+};
+exports.get_bets = get_bets;
+const get_all_bets = async (req, res) => {
     try {
         // const startDate = '2025-03-01'; // Start of the month
         // const endDate = '2025-03-31'; // End of the month
-        const { startDate, endDate, page, pageSize } = req.query
+        const { startDate, endDate, page, pageSize } = req.query;
         // const result = await Predict.aggregate([
         //     {
         //         $group: {
@@ -104,19 +111,19 @@ export const get_all_bets = async (req: Request | any, res: Response | any) => {
                 }
             }
         ];
-
-        const result = await Predict.aggregate(pipeline);
-
+        const result = await prections_1.Predict.aggregate(pipeline);
         // let prections = await Predict.find().select('-outcome -prediction')
         res
             .status(200)
             .json(result);
-        return
-    } catch (error) {
+        return;
+    }
+    catch (error) {
         console.log(error);
         res
             .status(400)
             .json({ success: false, message: "operation failed ", error });
-        return
+        return;
     }
-}
+};
+exports.get_all_bets = get_all_bets;

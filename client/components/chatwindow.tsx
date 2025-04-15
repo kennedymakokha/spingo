@@ -133,7 +133,7 @@ const ChatWindow = ({ username, chatwith, onClose, fetchConversationHistory, toI
             <div className="flex justify-between items-center bg-[#22b14c] text-white px-4 py-3 rounded-t-2xl">
                 <h3 className="font-bold italic">{chatwith}</h3>
                 <svg xmlns="http://www.w3.org/2000/svg" onClick={onClose} fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
             </div>
 
