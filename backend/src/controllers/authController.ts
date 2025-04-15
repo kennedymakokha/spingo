@@ -48,7 +48,7 @@ export const register = async (req: Request, res: Response) => {
             newUser._id,
             "account-activation"
         )
-        res.status(201).json({ ok: true,message: "User registered successfully", newUser });
+        res.status(201).json({ ok: true, message: "User registered successfully", newUser });
         return;
 
     } catch (error) {
@@ -88,12 +88,12 @@ export const activateuser = async (req: Request, res: Response) => {
             res.status(400).json("user not found");
             return
         }
-console.log("User",user,code)
+
         if (user.activationCode === code) {
             user.activationCode = ""
             user.activated = true
             await user.save();
-            res.status(200).json({ok: true, message: "user activated " });
+            res.status(200).json({ ok: true, message: "user activated " });
             return;
         }
         else {
@@ -180,7 +180,7 @@ export const login = async (req: Request, res: Response) => {
                 { phone_number: phone }
             ]
         });
-        
+
         if (!userExists.activated) {
             res.status(400).json("Kindly activate your account to continue")
             return
@@ -228,7 +228,7 @@ export const session_Check = async (req: Request, res: Response) => {
         res.status(200).json(user);
         return
     } catch (error) {
-        res.status(401).json({ message: "Invalid token" });
+        res.status(401).json({ ok: "false", message: "Invalid token" });
     }
 }
 

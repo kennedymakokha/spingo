@@ -278,33 +278,42 @@ export const mpesa_callback = async (req: Request | any, res: Response | any) =>
 export const makePayment = async (req: Request | any, res: Response | any) => {
     try {
         const { amount, phone_number } = req.body;
-            const response = await Mpesa_stk(phone_number, Number(amount), "679b1598af402f031e2da84c");
-            const merchantRequestId = response.MerchantRequestID;
+        const user: any = await User.findById(req.user.userId)
+        let number
+        if (phone_number) {
+            number = phone_number
+        }
+        else {
+            const user = await User.findById(req.user.userId)
+            number = user?.phone_number
+        }
+        const response = await Mpesa_stk(number, Number(amount), user._id);
+        const merchantRequestId = response.MerchantRequestID;
 
-            let logs = await MpesaLogs.findOne({ MerchantRequestID: merchantRequestId });
-            const maxRetries = 10;
-            const retryInterval = 5000;
-            let retryCount = 0;
+        let logs = await MpesaLogs.findOne({ MerchantRequestID: merchantRequestId });
+        const maxRetries = 10;
+        const retryInterval = 5000;
+        let retryCount = 0;
 
-            while (logs?.log === '' && retryCount < maxRetries) {
-                retryCount++;
-                console.log(`Retrying log fetch: attempt ${retryCount}`);
-                await new Promise(resolve => setTimeout(resolve, retryInterval));
-                logs = await MpesaLogs.findOne({ MerchantRequestID: merchantRequestId });
-            }
+        while (logs?.log === '' && retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Retrying log fetch: attempt ${retryCount}`);
+            await new Promise(resolve => setTimeout(resolve, retryInterval));
+            logs = await MpesaLogs.findOne({ MerchantRequestID: merchantRequestId });
+        }
 
-            if (!logs || logs.log === '') {
-                return res.status(500).json({ message: "Payment not verified. Please try again later." });
-            }
+        if (!logs || logs.log === '') {
+            return res.status(500).json({ message: "Payment not verified. Please try again later." });
+        }
 
-            if (logs.ResponseCode !== 0) {
-                return res.status(400).json({ message: logs.ResultDesc });
-            }
+        if (logs.ResponseCode !== 0) {
+            return res.status(400).json({ message: logs.ResultDesc });
+        }
 
-           
 
-            return res.status(200).json({ message: "Deposit successful" });
-       
+
+        return res.status(200).json({ message: "Deposit successful" });
+
 
     } catch (error: any) {
         console.error("Wallet operation error:", error);
