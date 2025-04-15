@@ -48,7 +48,7 @@ export const register = async (req: Request, res: Response) => {
             newUser._id,
             "account-activation"
         )
-        res.status(201).json({ message: "User registered successfully", newUser });
+        res.status(201).json({ ok: true,message: "User registered successfully", newUser });
         return;
 
     } catch (error) {
@@ -180,7 +180,7 @@ export const login = async (req: Request, res: Response) => {
                 { phone_number: phone }
             ]
         });
-        console.log(userExists)
+        
         if (!userExists.activated) {
             res.status(400).json("Kindly activate your account to continue")
             return
