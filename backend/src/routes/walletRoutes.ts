@@ -7,7 +7,7 @@ const router = Router();
 
 router.post("/", authenticateToken, Load_wallet);
 router.get("/", authenticateToken, get_wallet);
-router.post("/pay", makePayment);
+router.post("/pay", authenticateToken, makePayment);
 
 router.post("/mpesa-callback", mpesa_callback);
 router.get("/contributions", authenticateToken, get_contributions);
