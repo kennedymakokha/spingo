@@ -67,7 +67,7 @@ export const updatePassword = async (req: Request, res: Response) => {
         if (!user) {
             res.status(400).json("user not found");
             return
-        } 
+        }
         user.password = newPassword
         await user.save();
         res.status(200).json({ success: true, message: "Password updated successfully" });
@@ -180,6 +180,7 @@ export const login = async (req: Request, res: Response) => {
                 { phone_number: phone }
             ]
         });
+        console.log(userExists)
         if (!userExists.activated) {
             res.status(400).json("Kindly activate your account to continue")
             return
@@ -203,7 +204,7 @@ export const login = async (req: Request, res: Response) => {
         }
 
     } catch (error) {
-
+        console.log(error)
     }
 
 

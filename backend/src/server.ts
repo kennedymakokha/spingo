@@ -26,7 +26,7 @@ app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 const PORT = process.env.PORT || 4000;
-// connectDB();
+connectDB();
 
 const httpServer = createServer(app);
 const io: any = new Server(httpServer, {
