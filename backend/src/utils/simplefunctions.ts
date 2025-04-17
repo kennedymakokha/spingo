@@ -11,3 +11,10 @@ export const Format_phone_number = (phone_number: number | any) => {
     }
 
 }
+
+export const toLocalPhoneNumber = (phone: string | any) => {
+    if (phone.startsWith('+254')) {
+        return '' + phone.slice(1); // Replace +254 with 0
+    }
+    return phone; // Return as-is if already local
+}

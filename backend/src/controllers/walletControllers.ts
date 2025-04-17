@@ -6,6 +6,7 @@ import Mpesa_stk from "../utils/stk.helper";
 import { getSocketIo } from "../config/socket";
 import MpesaLogs from "../models/mpesa_logs";
 import createOrUpdateWallet from "../utils/createOrUpdate";
+import { toLocalPhoneNumber } from "../utils/simplefunctions";
 let io = getSocketIo()
 // export const Load_wallet = async (req: Request | any, res: Response | any) => {
 //     try {
@@ -191,9 +192,27 @@ export const Load_wallet = async (req: Request | any, res: Response | any) => {
 
 export const get_wallet = async (req: Request | any, res: Response | any) => {
     try {
+
         let walet = await Wallet.findOne({ user_id: req.user.userId })
         res.status(200)
             .json(walet);
+        return
+    } catch (error) {
+        console.log(error);
+        res
+            .status(400)
+            .json({ success: false, message: "operation failed ", error });
+        return
+    }
+}
+export const get_Mpesa_logs = async (req: Request | any, res: Response | any) => {
+    try {
+        let user: any = await User.findOne({ _id: req.user.userId })
+        console.log(user)
+        let phone = toLocalPhoneNumber(user.phone_number)
+        let Logs = await MpesaLogs.find({ phone_number: phone })
+        res.status(200)
+            .json(Logs);
         return
     } catch (error) {
         console.log(error);
