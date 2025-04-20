@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 const generateTokens = (user: any) => {
     const accessToken = jwt.sign(
-        { userId: user._id, username: user.username },
+        { userId: user._id, username: user.username, role: user.role },
         process.env.JWT_SECRET ? process.env.JWT_SECRET : "your_secret_key",
         { expiresIn: "1h" } // Short expiration
     );
